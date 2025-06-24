@@ -20,5 +20,9 @@ func initializeHandlers(router *chi.Mux) {
 	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong"))
 	})
+	router.Get("/vehicle", vehicleHandlers.GetVehicles)
 	router.Post("/vehicle", vehicleHandlers.AddVehicle)
+	router.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
+	router.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
+	router.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
 }
