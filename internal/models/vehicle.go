@@ -1,7 +1,7 @@
 package models
 
 type Vehicle struct {
-	ID             int     `json:"id"`
+	ID             int     `json:"id" gorm:"primaryKey"`
 	OwnerID        *int    `json:"owner_id,omitempty"`
 	Private        bool    `json:"private,omitempty"`
 	Brand          string  `json:"brand" validate:"required"`
@@ -11,4 +11,10 @@ type Vehicle struct {
 	EnginePower    int     `json:"engine_power" validate:"required,gte=0"`
 	Plates         string  `json:"plates,omitempty"`
 	ExpectedFuel   float64 `json:"expected_fuel" validate:"required,gte=0"`
+}
+
+type VehicleUpdate struct {
+	EnginePower  int     `json:"engine_power" validate:"gte=0"`
+	Plates       string  `json:"plates"`
+	ExpectedFuel float64 `json:"expected_fuel" validate:"gte=0"`
 }

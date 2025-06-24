@@ -3,27 +3,39 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
+	"veh-sense-backend/internal/models"
 
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var databaseClient *sql.DB
+var databaseClient *gorm.DB
 
 func ConnectToDatabase() error {
 	var err error
-	databaseClient, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	databaseClient, err = gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
 	if err != nil {
 		return err
 	}
 
-	if err = databaseClient.Ping(); err != nil {
-		return err
+	if err := databaseClient.AutoMigrate(&models.Vehicle{}); err != nil {
+		return fmt.Errorf("migration failed: " + err.Error())
 	}
-	fmt.Println("Connected to database!")
+
 	return nil
 }
 
-func GetDatabaseClient() *sql.DB {
+func GetDatabaseClient() *gorm.DB {
 	return databaseClient
+}
+
+func GetSQLClient() *sql.DB {
+	sqlDB, err := databaseClient.DB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return sqlDB
 }
