@@ -18,7 +18,7 @@ services:
   rest-api:
     build:
       context: .
-      dockerfile: cmd/rest-api/DockerFile
+      dockerfile: rest-api/DockerFile
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - PORT=8080

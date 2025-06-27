@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"veh-sense-backend/internal/database"
-	server "veh-sense-backend/internal/server/rest-api"
+
+	server "github.com/czxrny/veh-sense-backend/rest-api/internal/server"
+	"github.com/czxrny/veh-sense-backend/shared/database"
 )
 
 func main() {

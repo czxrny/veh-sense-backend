@@ -1,10 +1,10 @@
-package restapi
+package server
 
 import (
 	"fmt"
 	"net/http"
 
-	vehicleHandlers "veh-sense-backend/internal/handlers/rest-api/vehicle"
+	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
 
 	"github.com/go-chi/chi"
 )

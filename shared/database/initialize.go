@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"veh-sense-backend/internal/models"
+
+	"github.com/czxrny/veh-sense-backend/shared/models"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"

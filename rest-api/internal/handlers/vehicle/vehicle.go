@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"veh-sense-backend/internal/database"
-	"veh-sense-backend/internal/models"
+
+	"github.com/czxrny/veh-sense-backend/shared/database"
+	"github.com/czxrny/veh-sense-backend/shared/models"
 
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator"
