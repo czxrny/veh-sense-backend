@@ -1,6 +1,6 @@
 go 1.24.1
 
 use (
-    ./rest-api
-    ./shared
+	./rest-api
+	./shared
 )
