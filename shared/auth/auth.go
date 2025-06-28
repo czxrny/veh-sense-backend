@@ -16,19 +16,6 @@ func EncryptThePassword(userRegisterInfo *models.UserRegisterInfo) error {
 	return nil
 }
 
-func ValidatePasswordAndReturnToken(userInfo models.UserAuth, password string) (string, error) {
-	if err := bcrypt.CompareHashAndPassword([]byte(userInfo.Password), []byte(password)); err != nil {
-		return "", fmt.Errorf("Invalid login credentials.")
-	}
-
-	token, err := CreateToken(userInfo)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
-
 // UserAuth is able to edit asset if he was the one posting, or has admin role.
 func IsAuthorizedToEditAsset(token string, originalUser string) error {
 	UserAuth, err := ExtractFromToken(token, "usr")

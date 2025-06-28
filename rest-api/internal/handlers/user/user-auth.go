@@ -8,6 +8,7 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/auth"
 	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterUser(response http.ResponseWriter, request *http.Request) {
@@ -22,7 +23,7 @@ func RegisterUser(response http.ResponseWriter, request *http.Request) {
 		var resultInfo []models.UserInfo
 		db.Where("user_name = ?", userRegisterInfo.UserName).Find(&resultInfo)
 		if len(resultInfo) > 0 {
-			return models.UserTokenResponse{}, fmt.Errorf("Login is already taken.")
+			return models.UserTokenResponse{}, fmt.Errorf("Name is already taken.")
 		}
 
 		if err := auth.EncryptThePassword(userRegisterInfo); err != nil {
@@ -42,14 +43,14 @@ func RegisterUser(response http.ResponseWriter, request *http.Request) {
 		userInfo := models.UserInfo{
 			ID:              newUser.ID,
 			UserName:        userRegisterInfo.UserName,
-			OrganizationId:  0,
+			OrganizationId:  -1,
 			TotalKilometers: 0,
 		}
 		if err := db.Create(&userInfo).Error; err != nil {
 			return models.UserTokenResponse{}, err
 		}
 
-		token, err := auth.CreateToken(newUser)
+		token, err := auth.CreateToken(newUser, userInfo)
 		if err != nil {
 			return models.UserTokenResponse{}, err
 		}
@@ -64,20 +65,30 @@ func RegisterUser(response http.ResponseWriter, request *http.Request) {
 func LoginUser(response http.ResponseWriter, request *http.Request) {
 	common.AuthHandler(response, request, func(userCredentials *models.UserCredentials) (models.UserTokenResponse, error) {
 		db := database.GetDatabaseClient()
-		var user models.UserAuth
-		db.Find(&user).Where("email=", userCredentials.Email)
-		if user.ID == 0 {
+		var userAuth models.UserAuth
+		db.Where("email = ?", userCredentials.Email).Find(&userAuth)
+		if userAuth.ID == 0 {
 			return models.UserTokenResponse{}, fmt.Errorf("User does not exist.")
 		}
 
-		token, err := auth.ValidatePasswordAndReturnToken(user, userCredentials.Password)
+		if err := bcrypt.CompareHashAndPassword([]byte(userCredentials.Password), []byte(userAuth.Password)); err != nil {
+			return models.UserTokenResponse{}, fmt.Errorf("Invalid login credentials.")
+		}
+
+		var userInfo models.UserInfo
+		db.Where("id = ?", userCredentials.Email).Find(&userInfo)
+		if userInfo.ID == 0 {
+			return models.UserTokenResponse{}, fmt.Errorf("User does not exist.")
+		}
+
+		token, err := auth.CreateToken(userAuth, userInfo)
 		if err != nil {
 			return models.UserTokenResponse{}, err
 		}
 
 		return models.UserTokenResponse{
 			Token:   token,
-			LocalId: user.ID,
+			LocalId: userAuth.ID,
 		}, nil
 	})
 }

@@ -14,12 +14,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateToken(user models.UserAuth) (string, error) {
+func CreateToken(userAuth models.UserAuth, userInfo models.UserInfo) (string, error) {
 	expirationTime := time.Now().Add(time.Hour)
 
 	claims := jwt.MapClaims{
-		"lid": user.ID,
-		"rol": user.Role,
+		"lid": userAuth.ID,
+		"rol": userAuth.Role,
+		"org": userInfo.OrganizationId,
 		"iat": time.Now(),
 		"exp": expirationTime.Unix(),
 	}
@@ -51,7 +52,7 @@ func VerifyToken(tokenString string) error {
 }
 
 func ExtractFromToken(token string, field string) (string, error) {
-	claims, err := extractClaimsFromToken(token)
+	claims, err := ExtractClaimsFromToken(token)
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +64,7 @@ func ExtractFromToken(token string, field string) (string, error) {
 	return fieldVal, nil
 }
 
-func extractClaimsFromToken(token string) (map[string]interface{}, error) {
+func ExtractClaimsFromToken(token string) (map[string]interface{}, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
 		return nil, errors.New("invalid JWT format")
