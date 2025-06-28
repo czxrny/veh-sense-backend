@@ -6,6 +6,7 @@ import (
 
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/go-chi/chi"
 )
 
@@ -17,9 +18,8 @@ func InitializeAndStart() error {
 }
 
 func initializeHandlers(router *chi.Mux) {
-	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("pong"))
-	})
+	router.Use(middleware.JWTClaimsMiddleware)
+
 	router.Get("/vehicle", vehicleHandlers.GetVehicles)
 	router.Post("/vehicle", vehicleHandlers.AddVehicle)
 	router.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
@@ -29,4 +29,5 @@ func initializeHandlers(router *chi.Mux) {
 	router.Post("/user/register", userHandlers.RegisterUser)
 	router.Post("/user/login", userHandlers.LoginUser)
 	router.Delete("/user/{id}", userHandlers.DeleteUserById)
+
 }

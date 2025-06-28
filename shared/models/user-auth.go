@@ -23,3 +23,9 @@ type UserTokenResponse struct {
 	Token   string `json:"token"`
 	LocalId int    `json:"localId"`
 }
+
+type AuthInfo struct {
+	UserID         int
+	Role           string
+	OrganizationID int //-1 if private
+}
