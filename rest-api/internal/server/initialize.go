@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
-
 	"github.com/go-chi/chi"
 )
 
@@ -25,4 +25,8 @@ func initializeHandlers(router *chi.Mux) {
 	router.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
 	router.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
 	router.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
+
+	router.Post("/user/register", userHandlers.RegisterUser)
+	router.Post("/user/login", userHandlers.LoginUser)
+	router.Delete("/user/{id}", userHandlers.DeleteUserById)
 }

@@ -1,0 +1,83 @@
+package user
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	"github.com/czxrny/veh-sense-backend/shared/auth"
+	"github.com/czxrny/veh-sense-backend/shared/database"
+	"github.com/czxrny/veh-sense-backend/shared/models"
+)
+
+func RegisterUser(response http.ResponseWriter, request *http.Request) {
+	common.AuthHandler(response, request, func(userRegisterInfo *models.UserRegisterInfo) (models.UserTokenResponse, error) {
+		db := database.GetDatabaseClient()
+		var resultAuth []models.UserAuth
+		db.Where("email = ?", userRegisterInfo.Email).Find(&resultAuth)
+		if len(resultAuth) > 0 {
+			return models.UserTokenResponse{}, fmt.Errorf("Email is already taken.")
+		}
+
+		var resultInfo []models.UserInfo
+		db.Where("user_name = ?", userRegisterInfo.UserName).Find(&resultInfo)
+		if len(resultInfo) > 0 {
+			return models.UserTokenResponse{}, fmt.Errorf("Login is already taken.")
+		}
+
+		if err := auth.EncryptThePassword(userRegisterInfo); err != nil {
+			return models.UserTokenResponse{}, err
+		}
+		newUser := models.UserAuth{
+			Email:    userRegisterInfo.Email,
+			Password: userRegisterInfo.Password,
+			Role:     "user", // by default
+		}
+		if err := db.Create(&newUser).Error; err != nil {
+			return models.UserTokenResponse{}, err
+		}
+
+		// to do - can only add an user to a organization if you are the organizations admin! maybe through the jwt? not from request body?
+		// if the jwt is not passed - then just skip? and if it is passed - check if it is an admin? then check the corporation id?
+		userInfo := models.UserInfo{
+			ID:              newUser.ID,
+			UserName:        userRegisterInfo.UserName,
+			OrganizationId:  0,
+			TotalKilometers: 0,
+		}
+		if err := db.Create(&userInfo).Error; err != nil {
+			return models.UserTokenResponse{}, err
+		}
+
+		token, err := auth.CreateToken(newUser)
+		if err != nil {
+			return models.UserTokenResponse{}, err
+		}
+
+		return models.UserTokenResponse{
+			Token:   token,
+			LocalId: newUser.ID,
+		}, nil
+	})
+}
+
+func LoginUser(response http.ResponseWriter, request *http.Request) {
+	common.AuthHandler(response, request, func(userCredentials *models.UserCredentials) (models.UserTokenResponse, error) {
+		db := database.GetDatabaseClient()
+		var user models.UserAuth
+		db.Find(&user).Where("email=", userCredentials.Email)
+		if user.ID == 0 {
+			return models.UserTokenResponse{}, fmt.Errorf("User does not exist.")
+		}
+
+		token, err := auth.ValidatePasswordAndReturnToken(user, userCredentials.Password)
+		if err != nil {
+			return models.UserTokenResponse{}, err
+		}
+
+		return models.UserTokenResponse{
+			Token:   token,
+			LocalId: user.ID,
+		}, nil
+	})
+}

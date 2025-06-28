@@ -26,6 +26,14 @@ func ConnectToDatabase() error {
 		return fmt.Errorf("migration failed: " + err.Error())
 	}
 
+	if err := databaseClient.AutoMigrate(&models.UserAuth{}); err != nil {
+		return fmt.Errorf("migration failed: " + err.Error())
+	}
+
+	if err := databaseClient.AutoMigrate(&models.UserInfo{}); err != nil {
+		return fmt.Errorf("migration failed: " + err.Error())
+	}
+
 	return nil
 }
 

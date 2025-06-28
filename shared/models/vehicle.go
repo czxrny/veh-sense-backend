@@ -2,8 +2,8 @@ package models
 
 type Vehicle struct {
 	ID             int     `json:"id" gorm:"primaryKey"`
-	OwnerID        *int    `json:"owner_id,omitempty"`
-	Private        bool    `json:"private,omitempty"`
+	OwnerID        int     `json:"owner_id"`
+	Private        bool    `json:"private" validate:"required"`
 	Brand          string  `json:"brand" validate:"required"`
 	Model          string  `json:"model" validate:"required"`
 	Year           int     `json:"year" validate:"required"`

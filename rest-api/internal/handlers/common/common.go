@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/czxrny/veh-sense-backend/shared/models"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator"
 )
@@ -106,6 +107,27 @@ func DeleteHandler(response http.ResponseWriter, request *http.Request, serviceF
 	}
 
 	response.WriteHeader(http.StatusNoContent)
+}
+
+// Parameters:
+//   - response: http.ResponseWriter object,
+//   - request: *http.Request object,
+//   - ...
+func AuthHandler[T any](response http.ResponseWriter, request *http.Request, serviceFunc func(*T) (models.UserTokenResponse, error)) {
+	var obj T
+	if err := decodeAndValidateRequestBody(request, &obj); err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tokenResponse, err := serviceFunc(&obj)
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(response).Encode(tokenResponse)
 }
 
 func decodeAndValidateRequestBody[T any](request *http.Request, requestBodyStruct *T) error {
