@@ -6,7 +6,12 @@ import (
 	"net/http"
 )
 
+// Checks if there is a request body, invokes the inner handler and writes the response.
 func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context) ([]T, error)) {
+	if !requestBodyIsEmpty(r) {
+		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+	}
+
 	items, err := innerHandler(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -17,7 +22,12 @@ func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler f
 	json.NewEncoder(w).Encode(items)
 }
 
+// Checks if there is a request body, reads ID from path, invokes the inner handler and writes the response.
 func GetByIdHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, int) (*T, error)) {
+	if !requestBodyIsEmpty(r) {
+		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+	}
+
 	id, err := getIdFromPath(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -38,6 +48,7 @@ func GetByIdHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler 
 	json.NewEncoder(w).Encode(item)
 }
 
+// Decodes and validates the request body, invokes the inner handler and writes the response.
 func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) (*R, error)) {
 	var newItem T
 	if err := decodeAndValidateRequestBody(r, &newItem); err != nil {
@@ -55,6 +66,7 @@ func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler 
 	json.NewEncoder(w).Encode(item)
 }
 
+// Decodes and validates the request body, reads the id from path, invokes the inner handler and writes the response.
 func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T, int) (*R, error)) {
 	id, err := getIdFromPath(r)
 	if err != nil {
@@ -77,7 +89,12 @@ func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler
 	json.NewEncoder(w).Encode(item)
 }
 
+// Checks if there is a request body, reads ID from path, invokes the inner handler and writes the StatusNoContent.
 func DeleteHandler(w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, int) error) {
+	if !requestBodyIsEmpty(r) {
+		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+	}
+
 	id, err := getIdFromPath(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

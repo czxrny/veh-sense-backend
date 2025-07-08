@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -10,9 +11,9 @@ import (
 	"github.com/go-playground/validator"
 )
 
-func decodeAndValidateRequestBody[T any](request *http.Request, requestBodyStruct *T) error {
-	if err := json.NewDecoder(request.Body).Decode(&requestBodyStruct); err != nil {
-		return fmt.Errorf("Bad request body")
+func decodeAndValidateRequestBody[T any](r *http.Request, requestBodyStruct *T) error {
+	if err := json.NewDecoder(r.Body).Decode(&requestBodyStruct); err != nil {
+		return fmt.Errorf("Bad r body")
 	}
 
 	validate := validator.New()
@@ -22,11 +23,23 @@ func decodeAndValidateRequestBody[T any](request *http.Request, requestBodyStruc
 	return nil
 }
 
-func getIdFromPath(request *http.Request) (int, error) {
-	idStr := chi.URLParam(request, "id")
+func getIdFromPath(r *http.Request) (int, error) {
+	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return 0, fmt.Errorf("Invalid ID", http.StatusBadRequest)
 	}
 	return id, nil
+}
+
+func requestBodyIsEmpty(r *http.Request) bool {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return false
+	}
+	if len(bodyBytes) > 0 {
+		return false
+	}
+
+	return true
 }
