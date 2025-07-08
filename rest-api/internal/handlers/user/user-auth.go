@@ -11,23 +11,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func RegisterUser(response http.ResponseWriter, request *http.Request) {
-	common.AuthHandler(response, request, func(userRegisterInfo *models.UserRegisterInfo) (models.UserTokenResponse, error) {
+func RegisterUser(w http.ResponseWriter, r *http.Request) {
+	common.PostHandler(w, r, func(response http.ResponseWriter, request *http.Request, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
 		db := database.GetDatabaseClient()
 		var resultAuth []models.UserAuth
 		db.Where("email = ?", userRegisterInfo.Email).Find(&resultAuth)
 		if len(resultAuth) > 0 {
-			return models.UserTokenResponse{}, fmt.Errorf("Email is already taken.")
+			return nil, fmt.Errorf("Email is already taken.")
 		}
 
 		var resultInfo []models.UserInfo
 		db.Where("user_name = ?", userRegisterInfo.UserName).Find(&resultInfo)
 		if len(resultInfo) > 0 {
-			return models.UserTokenResponse{}, fmt.Errorf("Name is already taken.")
+			return nil, fmt.Errorf("Name is already taken.")
 		}
 
 		if err := auth.EncryptThePassword(userRegisterInfo); err != nil {
-			return models.UserTokenResponse{}, err
+			return nil, err
 		}
 		newUser := models.UserAuth{
 			Email:    userRegisterInfo.Email,
@@ -35,7 +35,7 @@ func RegisterUser(response http.ResponseWriter, request *http.Request) {
 			Role:     "user", // by default
 		}
 		if err := db.Create(&newUser).Error; err != nil {
-			return models.UserTokenResponse{}, err
+			return nil, err
 		}
 
 		// to do - can only add an user to a organization if you are the organizations admin! maybe through the jwt? not from request body?
@@ -47,15 +47,15 @@ func RegisterUser(response http.ResponseWriter, request *http.Request) {
 			TotalKilometers: 0,
 		}
 		if err := db.Create(&userInfo).Error; err != nil {
-			return models.UserTokenResponse{}, err
+			return nil, err
 		}
 
 		token, err := auth.CreateToken(newUser, userInfo)
 		if err != nil {
-			return models.UserTokenResponse{}, err
+			return nil, err
 		}
 
-		return models.UserTokenResponse{
+		return &models.UserTokenResponse{
 			Token:   token,
 			LocalId: newUser.ID,
 		}, nil

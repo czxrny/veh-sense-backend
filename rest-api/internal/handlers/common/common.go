@@ -43,24 +43,21 @@ func GetByIdHandler[T any](response http.ResponseWriter, request *http.Request, 
 	json.NewEncoder(response).Encode(obj)
 }
 
-// Parameters:
-//   - response: http.ResponseWriter object,
-//   - request: *http.Request object,
-//   - serviceFunc(*T) error - service function puting new data into the database using the generic argument.
-func PostHandler[T any](response http.ResponseWriter, request *http.Request, serviceFunc func(*T) error) {
+func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(http.ResponseWriter, *http.Request, *T) (*R, error)) {
 	var obj T
-	if err := decodeAndValidateRequestBody(request, &obj); err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	if err := decodeAndValidateRequestBody(r, &obj); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := serviceFunc(&obj); err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	result, err := innerHandler(w, r, &obj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	response.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(response).Encode(obj)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 // Parameters:

@@ -19,9 +19,13 @@ func GetVehicles(response http.ResponseWriter, request *http.Request) {
 }
 
 func AddVehicle(response http.ResponseWriter, request *http.Request) {
-	common.PostHandler(response, request, func(vehicle *models.Vehicle) error {
+	common.PostHandler(response, request, func(response http.ResponseWriter, request *http.Request, vehicle *models.Vehicle) (*models.Vehicle, error) {
 		db := database.GetDatabaseClient()
-		return db.Create(vehicle).Error
+		if err := db.Create(vehicle).Error; err != nil {
+			return nil, err
+		}
+
+		return vehicle, nil
 	})
 }
 
