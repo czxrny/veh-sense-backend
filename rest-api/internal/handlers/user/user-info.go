@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,9 +10,8 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-func DeleteUserById(response http.ResponseWriter, request *http.Request) {
-	// 1:1 like the vehicle implementation ! needs refactor
-	common.DeleteHandler(response, request, func(id int) error {
+func DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		db := database.GetDatabaseClient()
 		result := db.Delete(&models.Vehicle{}, id)
 		if result.Error != nil {

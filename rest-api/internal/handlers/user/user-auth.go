@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -12,8 +13,9 @@ import (
 )
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
-	common.PostHandler(w, r, func(response http.ResponseWriter, request *http.Request, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
+	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
 		db := database.GetDatabaseClient()
+
 		var resultAuth []models.UserAuth
 		db.Where("email = ?", userRegisterInfo.Email).Find(&resultAuth)
 		if len(resultAuth) > 0 {
@@ -56,31 +58,32 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func LoginUser(response http.ResponseWriter, request *http.Request) {
-	common.AuthHandler(response, request, func(userCredentials *models.UserCredentials) (models.UserTokenResponse, error) {
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
 		db := database.GetDatabaseClient()
+
 		var userAuth models.UserAuth
-		db.Where("email = ?", userCredentials.Email).Find(&userAuth)
+		db.Where("email = ?", userRegisterInfo.Email).Find(&userAuth)
 		if userAuth.ID == 0 {
-			return models.UserTokenResponse{}, fmt.Errorf("User does not exist.")
+			return nil, fmt.Errorf("User does not exist.")
 		}
 
-		if err := bcrypt.CompareHashAndPassword([]byte(userCredentials.Password), []byte(userAuth.Password)); err != nil {
-			return models.UserTokenResponse{}, fmt.Errorf("Invalid login credentials.")
+		if err := bcrypt.CompareHashAndPassword([]byte(userRegisterInfo.Password), []byte(userAuth.Password)); err != nil {
+			return nil, fmt.Errorf("Invalid login credentials.")
 		}
 
 		var userInfo models.UserInfo
-		db.Where("id = ?", userCredentials.Email).Find(&userInfo)
+		db.Where("id = ?", userRegisterInfo.Email).Find(&userInfo)
 		if userInfo.ID == 0 {
-			return models.UserTokenResponse{}, fmt.Errorf("User does not exist.")
+			return nil, fmt.Errorf("User does not exist.")
 		}
 
 		token, err := auth.CreateToken(userAuth, userInfo)
 		if err != nil {
-			return models.UserTokenResponse{}, err
+			return nil, err
 		}
 
-		return models.UserTokenResponse{
+		return &models.UserTokenResponse{
 			Token:   token,
 			LocalId: userAuth.ID,
 		}, nil

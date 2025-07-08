@@ -1,6 +1,7 @@
 package vehicle
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,17 +10,23 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-func GetVehicles(response http.ResponseWriter, request *http.Request) {
+func GetVehicles(w http.ResponseWriter, r *http.Request) {
 	/* TODO - RETURN ONLY THE VEHICLES FROM THE ORGRANIZATION/PRIVATE OWNER */
 	/* POSSIBLE USAGE - OWNER WILL HAVE MULTIPLE VEHICLES THAT CAN BE DISPLAYED UPON THE START OF THE APP */
-	common.GetAllHandler(response, request, func(vehicles *[]models.Vehicle) error {
+	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Vehicle, error) {
 		db := database.GetDatabaseClient()
-		return db.Find(&vehicles).Error
+
+		var vehicles []models.Vehicle
+		if err := db.Find(&vehicles).Error; err != nil {
+			return nil, err
+		}
+
+		return vehicles, nil
 	})
 }
 
-func AddVehicle(response http.ResponseWriter, request *http.Request) {
-	common.PostHandler(response, request, func(response http.ResponseWriter, request *http.Request, vehicle *models.Vehicle) (*models.Vehicle, error) {
+func AddVehicle(w http.ResponseWriter, r *http.Request) {
+	common.PostHandler(w, r, func(ctx context.Context, vehicle *models.Vehicle) (*models.Vehicle, error) {
 		db := database.GetDatabaseClient()
 		if err := db.Create(vehicle).Error; err != nil {
 			return nil, err
@@ -29,33 +36,44 @@ func AddVehicle(response http.ResponseWriter, request *http.Request) {
 	})
 }
 
-func GetVehicleById(response http.ResponseWriter, request *http.Request) {
+func GetVehicleById(w http.ResponseWriter, r *http.Request) {
 	/* PROVIDE ONLY IF THE USER IS THE OWNER! */
-	common.GetByIdHandler(response, request, func(vehicle *models.Vehicle, id int) error {
+	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.Vehicle, error) {
 		db := database.GetDatabaseClient()
-		return db.First(&vehicle, id).Error
+
+		var vehicle models.Vehicle
+		if err := db.First(&vehicle, id).Error; err != nil {
+			return nil, err
+		}
+
+		return &vehicle, nil
 	})
 }
 
-func UpdateVehicle(response http.ResponseWriter, request *http.Request) {
+func UpdateVehicle(w http.ResponseWriter, r *http.Request) {
 	/* TODO - ONLY THE ORGANIZATION ADMIN / OWNER CAN EDIT THE VEHICLE INFO.. */
-	common.PatchHandler(response, request, func(vehicle *models.VehicleUpdate, id int) error {
+	common.PatchHandler(w, r, func(ctx context.Context, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
 		db := database.GetDatabaseClient()
-		result := db.Model(&models.Vehicle{}).Where("id=?", id).Updates(vehicle)
+		result := db.Model(&models.Vehicle{}).Where("id=?", id).Updates(updatedVehicle)
 		if result.Error != nil {
-			return result.Error
+			return nil, result.Error
 		}
 
 		if result.RowsAffected == 0 {
-			return fmt.Errorf("No rows updated")
+			return nil, fmt.Errorf("Vehicle does not exist!")
 		}
 
-		return nil
+		var vehicle models.Vehicle
+		if err := db.First(&vehicle, id).Error; err != nil {
+			return nil, err
+		}
+
+		return &vehicle, nil
 	})
 }
 
-func DeleteVehicle(response http.ResponseWriter, request *http.Request) {
-	common.DeleteHandler(response, request, func(id int) error {
+func DeleteVehicle(w http.ResponseWriter, r *http.Request) {
+	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		db := database.GetDatabaseClient()
 		result := db.Delete(&models.Vehicle{}, id)
 		if result.Error != nil {
@@ -63,7 +81,7 @@ func DeleteVehicle(response http.ResponseWriter, request *http.Request) {
 		}
 
 		if result.RowsAffected == 0 {
-			return fmt.Errorf("No record found to delete")
+			return fmt.Errorf("No vehicle found to delete")
 		}
 
 		return nil
