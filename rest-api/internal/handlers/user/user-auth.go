@@ -20,12 +20,6 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 			return nil, fmt.Errorf("Email is already taken.")
 		}
 
-		var resultInfo []models.UserInfo
-		db.Where("user_name = ?", userRegisterInfo.UserName).Find(&resultInfo)
-		if len(resultInfo) > 0 {
-			return nil, fmt.Errorf("Name is already taken.")
-		}
-
 		if err := auth.EncryptThePassword(userRegisterInfo); err != nil {
 			return nil, err
 		}
