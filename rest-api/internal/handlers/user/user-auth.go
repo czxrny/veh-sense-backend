@@ -39,7 +39,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		userInfo := models.UserInfo{
 			ID:              newUser.ID,
 			UserName:        userRegisterInfo.UserName,
-			OrganizationId:  -1,
+			OrganizationId:  nil,
 			TotalKilometers: 0,
 		}
 		if err := db.Create(&userInfo).Error; err != nil {

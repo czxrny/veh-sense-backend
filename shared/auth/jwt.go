@@ -15,14 +15,14 @@ import (
 )
 
 func CreateToken(userAuth models.UserAuth, userInfo models.UserInfo) (string, error) {
-	expirationTime := time.Now().Add(time.Hour)
-
 	claims := jwt.MapClaims{
 		"lid": userAuth.ID,
 		"rol": userAuth.Role,
-		"org": userInfo.OrganizationId,
 		"iat": time.Now(),
-		"exp": expirationTime.Unix(),
+		"exp": time.Now().Add(time.Hour).Unix(),
+	}
+	if userInfo.OrganizationId != nil {
+		claims["org"] = userInfo.OrganizationId
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
