@@ -45,16 +45,22 @@ func JWTClaimsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		orgFloat, ok := claims["org"].(float64)
-		if !ok {
-			http.Error(response, "Invalid token: org is missing or not a number", http.StatusUnauthorized)
-			return
+		var orgID *int
+		orgIDRaw, ok := claims["org"]
+		if ok {
+			orgFloat, ok := orgIDRaw.(float64)
+			if !ok {
+				http.Error(response, "Invalid token: org is not a number", http.StatusUnauthorized)
+				return
+			}
+			temp := int(orgFloat)
+			orgID = &temp
 		}
 
 		authClaims := models.AuthInfo{
 			UserID:         int(lidFloat),
 			Role:           role,
-			OrganizationID: int(orgFloat),
+			OrganizationID: orgID,
 		}
 
 		ctx := context.WithValue(request.Context(), authKeyName, authClaims)

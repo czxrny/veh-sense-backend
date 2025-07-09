@@ -27,5 +27,5 @@ type UserTokenResponse struct {
 type AuthInfo struct {
 	UserID         int
 	Role           string
-	OrganizationID int //-1 if private
+	OrganizationID *int
 }
