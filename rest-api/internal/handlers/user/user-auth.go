@@ -7,10 +7,7 @@ import (
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
 	userService "github.com/czxrny/veh-sense-backend/rest-api/internal/services/user"
-	"github.com/czxrny/veh-sense-backend/shared/auth"
-	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func RegisterPrivateUser(w http.ResponseWriter, r *http.Request) {
@@ -47,33 +44,7 @@ func RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
-	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
-		db := database.GetDatabaseClient()
-
-		var userAuth models.UserAuth
-		db.Where("email = ?", userRegisterInfo.Email).Find(&userAuth)
-		if userAuth.ID == 0 {
-			return nil, fmt.Errorf("User does not exist.")
-		}
-
-		if err := bcrypt.CompareHashAndPassword([]byte(userRegisterInfo.Password), []byte(userAuth.Password)); err != nil {
-			return nil, fmt.Errorf("Invalid login credentials.")
-		}
-
-		var userInfo models.UserInfo
-		db.Where("id = ?", userRegisterInfo.Email).Find(&userInfo)
-		if userInfo.ID == 0 {
-			return nil, fmt.Errorf("User does not exist.")
-		}
-
-		token, err := auth.CreateToken(userAuth, userInfo)
-		if err != nil {
-			return nil, err
-		}
-
-		return &models.UserTokenResponse{
-			Token:   token,
-			LocalId: userAuth.ID,
-		}, nil
+	common.PostHandler(w, r, func(ctx context.Context, userCredentials *models.UserCredentials) (*models.UserTokenResponse, error) {
+		return userService.LoginUser(userCredentials)
 	})
 }
