@@ -26,7 +26,10 @@ func initializeHandlers(router *chi.Mux) {
 	router.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
 	router.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
 
-	router.Post("/user/register", userHandlers.RegisterUser)
+	router.Post("/auth/register", userHandlers.RegisterPrivateUser)
+	router.Post("/admin/user", userHandlers.RegisterCorporateUser)
+	router.Post("/root/user", userHandlers.RegisterUserRoot)
+	router.Post("/root/organization", userHandlers.RegisterPrivateUser)
 	router.Post("/user/login", userHandlers.LoginUser)
 	router.Delete("/user/{id}", userHandlers.DeleteUserById)
 

@@ -7,11 +7,18 @@ type UserAuth struct {
 	Role     string `json:"role"`
 }
 
-type UserRegisterInfo struct {
+type UserRegisterInfoRoot struct {
 	UserName       string `json:"username" validate:"required,min=2"`
 	Email          string `json:"email" validate:"required,email"`
 	Password       string `json:"password" validate:"required,min=6"`
-	OrganizationId *int   `json:"organization_id,omitempty"`
+	OrganizationID *int   `json:"organization_id,omitempty"`
+	Role           string `json:"role" validate:"required"`
+}
+
+type UserRegisterInfo struct {
+	UserName string `json:"username" validate:"required,min=2"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 type UserCredentials struct {
