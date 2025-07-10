@@ -37,4 +37,8 @@ func initializeHandlers(router *chi.Mux) {
 	router.Post("/root/organization", organizationHandlers.CreateOrganization)
 	router.Get("/root/organization", organizationHandlers.GetAllOrganizations)
 	router.Delete("/root/organization", organizationHandlers.DeleteOrganization)
+
+	// For organizations
+	router.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
+	router.Get("/root/organization", organizationHandlers.PatchMyOrganization)
 }
