@@ -19,26 +19,33 @@ func InitializeAndStart() error {
 }
 
 func initializeHandlers(router *chi.Mux) {
-	router.Use(middleware.JWTClaimsMiddleware)
-
-	router.Get("/vehicle", vehicleHandlers.GetVehicles)
-	router.Post("/vehicle", vehicleHandlers.AddVehicle)
-	router.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
-	router.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
-	router.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
-
+	// Public endpoints
 	router.Post("/auth/register", userHandlers.RegisterPrivateUser)
-	router.Post("/admin/user", userHandlers.RegisterCorporateUser)
-	router.Post("/root/user", userHandlers.RegisterUserRoot)
 	router.Post("/user/login", userHandlers.LoginUser)
-	router.Delete("/user/{id}", userHandlers.DeleteUserById)
 
-	// Organization related - root only
-	router.Post("/root/organization", organizationHandlers.CreateOrganization)
-	router.Get("/root/organization", organizationHandlers.GetAllOrganizations)
-	router.Delete("/root/organization", organizationHandlers.DeleteOrganization)
+	// Endpoints that require the JWT
+	router.Group(func(protectedRouter chi.Router) {
+		protectedRouter.Use(middleware.JWTClaimsMiddleware)
 
-	// For organizations
-	router.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
-	router.Get("/root/organization", organizationHandlers.PatchMyOrganization)
+		protectedRouter.Get("/vehicle", vehicleHandlers.GetVehicles)
+		protectedRouter.Post("/vehicle", vehicleHandlers.AddVehicle)
+		protectedRouter.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
+		protectedRouter.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
+		protectedRouter.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
+
+		protectedRouter.Post("/admin/user", userHandlers.RegisterCorporateUser)
+		protectedRouter.Delete("/user/{id}", userHandlers.DeleteUserById)
+
+		// For organizations
+		protectedRouter.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
+		protectedRouter.Patch("/me/organization", organizationHandlers.PatchMyOrganization)
+
+		// Root only
+		protectedRouter.Post("/root/user", userHandlers.RegisterUserRoot)
+
+		// Organization related
+		protectedRouter.Post("/root/organization", organizationHandlers.CreateOrganization)
+		protectedRouter.Get("/root/organization", organizationHandlers.GetAllOrganizations)
+		protectedRouter.Delete("/root/organization/{id}", organizationHandlers.DeleteOrganization)
+	})
 }
