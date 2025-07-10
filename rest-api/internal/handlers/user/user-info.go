@@ -12,16 +12,28 @@ import (
 
 func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
+		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		if !ok {
+			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+		}
+
 		db := database.GetDatabaseClient()
-		result := db.Delete(&models.Vehicle{}, id)
-		if result.Error != nil {
-			return result.Error
+
+		var userInfo models.UserInfo
+		if err := db.First(&userInfo, id).Error; err != nil {
+			return err
 		}
 
-		if result.RowsAffected == 0 {
-			return fmt.Errorf("No record found to delete")
+		isOwner := id == authClaims.UserID
+		isOrgAdmin := authClaims.OrganizationID != nil && userInfo.OrganizationId != nil && *userInfo.OrganizationId == *authClaims.OrganizationID && authClaims.Role == "admin"
+
+		if !isOwner && !isOrgAdmin && authClaims.Role != "root" {
+			return fmt.Errorf("Error: User is unauthorized to delete the user.")
 		}
 
-		return nil
+		if err := db.Delete(&models.UserAuth{}, id).Error; err != nil {
+			return err
+		}
+		return db.Delete(&models.UserInfo{}, id).Error
 	})
 }
