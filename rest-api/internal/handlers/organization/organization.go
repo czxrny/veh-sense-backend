@@ -73,9 +73,9 @@ func DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Based on JWT Token...
+// Returns only the info about the organization of the JWT user...
 func GetMyOrganizationInfo(w http.ResponseWriter, r *http.Request) {
-	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.Organization, error) {
+	common.GetSimpleHandler(w, r, func(ctx context.Context) (*models.Organization, error) {
 		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
@@ -88,7 +88,7 @@ func GetMyOrganizationInfo(w http.ResponseWriter, r *http.Request) {
 		db := database.GetDatabaseClient()
 
 		var organization models.Organization
-		if err := db.First(&organization, id).Error; err != nil {
+		if err := db.First(&organization, authClaims.OrganizationID).Error; err != nil {
 			return nil, err
 		}
 
@@ -97,26 +97,26 @@ func GetMyOrganizationInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 // Based on JWT Token... Requires admin role of organization / root.
-func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
-	common.PatchHandler(w, r, func(ctx context.Context, organizationUpdate *models.OrganizationUpdate, id int) (*models.Organization, error) {
+func PatchMyOrganization(w http.ResponseWriter, r *http.Request) {
+	common.PatchSimpleHandler(w, r, func(ctx context.Context, organizationUpdate *models.OrganizationUpdate) (*models.Organization, error) {
 		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
 
-		isOrgAdmin := authClaims.OrganizationID != nil && *authClaims.OrganizationID == id && authClaims.Role == "admin"
+		isOrgAdmin := authClaims.OrganizationID != nil && authClaims.Role == "admin"
 		if !isOrgAdmin && authClaims.Role != "root" {
 			return nil, fmt.Errorf("Error: User is unauthorized to edit the organization.")
 		}
 
 		db := database.GetDatabaseClient()
 
-		if err := db.Model(&models.Vehicle{}).Where("id=?", id).Updates(organizationUpdate).Error; err != nil {
+		if err := db.Model(&models.Vehicle{}).Where("id=?", authClaims.OrganizationID).Updates(organizationUpdate).Error; err != nil {
 			return nil, err
 		}
 
 		var updatedOrganization models.Organization
-		if err := db.First(&updatedOrganization, id).Error; err != nil {
+		if err := db.First(&updatedOrganization, authClaims.OrganizationID).Error; err != nil {
 			return nil, err
 		}
 

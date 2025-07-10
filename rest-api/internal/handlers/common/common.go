@@ -39,8 +39,19 @@ func GetByIdHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler 
 		return
 	}
 
-	if item == nil {
-		http.Error(w, "Item not found", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(item)
+}
+
+// Same as GetByIdHandler - just skipping the ID part (used for the /me/* endpoints)
+func GetSimpleHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context) (*T, error)) {
+	if !requestBodyIsEmpty(r) {
+		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+	}
+
+	item, err := innerHandler(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -80,6 +91,24 @@ func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler
 	}
 
 	item, err := innerHandler(r.Context(), &updatedItem, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(item)
+}
+
+// Same as PatchByIdHandler - just skipping the ID part (used for the /me/* endpoints)
+func PatchSimpleHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) (*R, error)) {
+	var updatedItem T
+	if err := decodeAndValidateRequestBody(r, &updatedItem); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	item, err := innerHandler(r.Context(), &updatedItem)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
