@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	organizationHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/organization"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -29,8 +30,11 @@ func initializeHandlers(router *chi.Mux) {
 	router.Post("/auth/register", userHandlers.RegisterPrivateUser)
 	router.Post("/admin/user", userHandlers.RegisterCorporateUser)
 	router.Post("/root/user", userHandlers.RegisterUserRoot)
-	router.Post("/root/organization", userHandlers.RegisterPrivateUser)
 	router.Post("/user/login", userHandlers.LoginUser)
 	router.Delete("/user/{id}", userHandlers.DeleteUserById)
 
+	// Organization related - root only
+	router.Post("/root/organization", organizationHandlers.CreateOrganization)
+	router.Get("/root/organization", organizationHandlers.GetAllOrganizations)
+	router.Delete("/root/organization", organizationHandlers.DeleteOrganization)
 }
