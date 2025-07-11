@@ -37,6 +37,7 @@ func initializeHandlers(router *chi.Mux) {
 		protectedRouter.Post("/admin/user", userHandlers.RegisterCorporateUser)
 		protectedRouter.Delete("/user/{id}", userHandlers.DeleteUserById)
 
+		protectedRouter.Get("/me/user", userHandlers.GetMyUserInfo)
 		// For organizations
 		protectedRouter.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
 		protectedRouter.Patch("/me/organization", organizationHandlers.PatchMyOrganization)

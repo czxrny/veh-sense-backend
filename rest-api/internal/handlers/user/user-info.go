@@ -10,6 +10,23 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
+func GetMyUserInfo(w http.ResponseWriter, r *http.Request) {
+	common.GetSimpleHandler(w, r, func(ctx context.Context) (*models.UserInfo, error) {
+		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		if !ok {
+			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+		}
+
+		db := database.GetDatabaseClient()
+		var userInfo models.UserInfo
+		if err := db.First(&userInfo, authClaims.UserID).Error; err != nil {
+			return nil, err
+		}
+
+		return &userInfo, nil
+	})
+}
+
 func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
