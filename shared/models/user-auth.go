@@ -26,6 +26,13 @@ type UserCredentials struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
+type UserCredentialsUpdateRequest struct {
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=6"`
+	NewEmail    string `json:"new_email" validate:"email"`
+	NewPassword string `json:"new_password" validate:"min=6"`
+}
+
 type UserTokenResponse struct {
 	Token   string `json:"token"`
 	LocalId int    `json:"localId"`

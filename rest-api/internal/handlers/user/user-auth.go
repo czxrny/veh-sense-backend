@@ -48,3 +48,10 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return userService.LoginUser(userCredentials)
 	})
 }
+
+// Requires the user to login and pass updated information
+func UpdateLoginCredentials(w http.ResponseWriter, r *http.Request) {
+	common.PostHandler(w, r, func(ctx context.Context, credUpdateRequest *models.UserCredentialsUpdateRequest) (*models.UserTokenResponse, error) {
+		return userService.UpdateLoginCredentials(credUpdateRequest)
+	})
+}

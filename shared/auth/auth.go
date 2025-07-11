@@ -3,17 +3,15 @@ package auth
 import (
 	"fmt"
 
-	"github.com/czxrny/veh-sense-backend/shared/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func EncryptThePassword(userRegisterInfo *models.UserRegisterInfo) error {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(userRegisterInfo.Password), bcrypt.DefaultCost)
+func EncryptThePassword(password string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("Error hashing password")
+		return "", fmt.Errorf("Error hashing password")
 	}
-	userRegisterInfo.Password = string(hashed)
-	return nil
+	return string(hashed), nil
 }
 
 // UserAuth is able to edit asset if he was the one posting, or has admin role.
