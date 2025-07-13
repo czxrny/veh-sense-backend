@@ -10,9 +10,9 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-type contextKey string
+type ContextKey string
 
-const authKeyName contextKey = "authClaims"
+const AuthKeyName ContextKey = "authClaims"
 
 func JWTClaimsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func JWTClaimsMiddleware(next http.Handler) http.Handler {
 			OrganizationID: orgID,
 		}
 
-		ctx := context.WithValue(r.Context(), authKeyName, authClaims)
+		ctx := context.WithValue(r.Context(), AuthKeyName, authClaims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

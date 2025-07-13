@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
 func GetMyUserInfo(w http.ResponseWriter, r *http.Request) {
 	common.GetSimpleHandler(w, r, func(ctx context.Context) (*models.UserInfo, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -29,7 +30,7 @@ func GetMyUserInfo(w http.ResponseWriter, r *http.Request) {
 
 func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}

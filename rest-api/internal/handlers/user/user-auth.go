@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	userService "github.com/czxrny/veh-sense-backend/rest-api/internal/services/user"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
@@ -18,7 +19,7 @@ func RegisterPrivateUser(w http.ResponseWriter, r *http.Request) {
 
 func RegisterCorporateUser(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "admin" {
 			return nil, fmt.Errorf("Error: to create an organization user, login as an admin and pass the JWT!")
 		}
@@ -28,7 +29,7 @@ func RegisterCorporateUser(w http.ResponseWriter, r *http.Request) {
 
 func RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfoRoot) (*models.UserTokenResponse, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "root" {
 			return nil, fmt.Errorf("Error: to create a custom user, login as a root and pass the JWT!")
 		}

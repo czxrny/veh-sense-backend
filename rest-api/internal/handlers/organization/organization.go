@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
@@ -13,7 +14,7 @@ import (
 // Root only
 func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
 	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Organization, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -36,7 +37,7 @@ func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
 // Root only
 func CreateOrganization(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, organization *models.Organization) (*models.Organization, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -58,7 +59,7 @@ func CreateOrganization(w http.ResponseWriter, r *http.Request) {
 // Root only
 func DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -76,7 +77,7 @@ func DeleteOrganization(w http.ResponseWriter, r *http.Request) {
 // Returns only the info about the organization of the JWT user...
 func GetMyOrganizationInfo(w http.ResponseWriter, r *http.Request) {
 	common.GetSimpleHandler(w, r, func(ctx context.Context) (*models.Organization, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -98,8 +99,8 @@ func GetMyOrganizationInfo(w http.ResponseWriter, r *http.Request) {
 
 // Based on JWT Token... Requires admin role of organization / root.
 func PatchMyOrganization(w http.ResponseWriter, r *http.Request) {
-	common.PatchSimpleHandler(w, r, func(ctx context.Context, organizationUpdate *models.OrganizationUpdate) (*models.Organization, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+	common.PatchSimpleHandler(w, r, func(ctx context.Context, organizationUpdate *models.Organization) (*models.Organization, error) {
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}

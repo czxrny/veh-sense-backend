@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
@@ -17,7 +18,7 @@ import (
 // Root gets all the info.
 func GetVehicles(w http.ResponseWriter, r *http.Request) {
 	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Vehicle, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -45,7 +46,7 @@ func GetVehicles(w http.ResponseWriter, r *http.Request) {
 
 func AddVehicle(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, vehicle *models.Vehicle) (*models.Vehicle, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -80,7 +81,7 @@ func AddVehicle(w http.ResponseWriter, r *http.Request) {
 // Returns the vehicle - only if the user is the owner of the vehicle / the vehicle is shared in the corporation the user is in
 func GetVehicleById(w http.ResponseWriter, r *http.Request) {
 	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.Vehicle, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -106,7 +107,7 @@ func GetVehicleById(w http.ResponseWriter, r *http.Request) {
 
 func UpdateVehicle(w http.ResponseWriter, r *http.Request) {
 	common.PatchHandler(w, r, func(ctx context.Context, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
@@ -139,7 +140,7 @@ func UpdateVehicle(w http.ResponseWriter, r *http.Request) {
 
 func DeleteVehicle(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
