@@ -18,6 +18,21 @@ There will be couple of roles:
 
 ### Used chi + GORM + PostgreSQL + Docker.
 
-# Current stage of the development
+# Current stage of the development - TODO
 
-Implementing the root endpoints for adding organizations and their admins. Then, these admins can create users for theirs organizations!
+- [ ] Query params for all GET requests
+- [ ] Decide what endpoints are really required and needed (root needs to be able to delete vehicles?)
+- [ ] Validate tokens when the owner was deleted or changed the password
+
+## Then...
+
+- [ ] Unify the status codes
+- [ ] Develop the Raport service with sessions etc.
+- [ ] Prepare the tests of each endpoint
+
+## And then...
+
+- [ ] Implement changing the password by email
+- [ ] HTTPS
+- [ ] WebSocket for the admin panel LIVE view
+- [ ] Microservices
