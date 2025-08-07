@@ -1,1 +1,12 @@
 .env
+
+# Virtual enviroment for python scripts
+venv/
+env/
+.venv/
+.env/
+
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
