@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	organizationHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/organization"
+	raportHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/raport"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -20,34 +21,32 @@ func InitializeAndStart() error {
 
 func initializeHandlers(router *chi.Mux) {
 	// Public endpoints
-	router.Post("/auth/register", userHandlers.RegisterPrivateUser)
-	router.Post("/user/login", userHandlers.LoginUser)
-	router.Post("/user/login/update", userHandlers.UpdateLoginCredentials)
+	router.Post("/auth/signup", userHandlers.RegisterPrivateUser)
+	router.Post("/auth/login", userHandlers.LoginUser)
+	router.Patch("/me/password", userHandlers.UpdateLoginCredentials)
 
 	// Endpoints that require the JWT
 	router.Group(func(protectedRouter chi.Router) {
 		protectedRouter.Use(middleware.JWTClaimsMiddleware)
 
-		protectedRouter.Get("/vehicle", vehicleHandlers.GetVehicles)
-		protectedRouter.Post("/vehicle", vehicleHandlers.AddVehicle)
-		protectedRouter.Get("/vehicle/{id}", vehicleHandlers.GetVehicleById)
-		protectedRouter.Patch("/vehicle/{id}", vehicleHandlers.UpdateVehicle)
-		protectedRouter.Delete("/vehicle/{id}", vehicleHandlers.DeleteVehicle)
+		protectedRouter.Get("/vehicles", vehicleHandlers.GetVehicles)
+		protectedRouter.Post("/vehicles", vehicleHandlers.AddVehicle)
+		protectedRouter.Get("/vehicles/{id}", vehicleHandlers.GetVehicleById)
+		protectedRouter.Patch("/vehicles/{id}", vehicleHandlers.UpdateVehicle)
+		protectedRouter.Delete("/vehicles/{id}", vehicleHandlers.DeleteVehicle)
 
-		protectedRouter.Post("/admin/user", userHandlers.RegisterCorporateUser)
-		protectedRouter.Delete("/user/{id}", userHandlers.DeleteUserById)
-
-		protectedRouter.Get("/me/user", userHandlers.GetMyUserInfo)
-		// For organizations
+		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
+		protectedRouter.Get("/me/raports", raportHandlers.GetRaports)
 		protectedRouter.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
-		protectedRouter.Patch("/me/organization", organizationHandlers.PatchMyOrganization)
 
-		// Root only
-		protectedRouter.Post("/root/user", userHandlers.RegisterUserRoot)
+		protectedRouter.Patch("/admin/organization", organizationHandlers.PatchMyOrganization)
+		protectedRouter.Post("/admin/users", userHandlers.RegisterCorporateUser)
 
-		// Organization related
-		protectedRouter.Post("/root/organization", organizationHandlers.CreateOrganization)
-		protectedRouter.Get("/root/organization", organizationHandlers.GetAllOrganizations)
-		protectedRouter.Delete("/root/organization/{id}", organizationHandlers.DeleteOrganization)
+		protectedRouter.Delete("/users/{id}", userHandlers.DeleteUserById)
+
+		protectedRouter.Post("/root/admins", userHandlers.RegisterUserRoot)
+		protectedRouter.Post("/root/organizations", organizationHandlers.CreateOrganization)
+		protectedRouter.Get("/root/organizations", organizationHandlers.GetAllOrganizations)
+		protectedRouter.Delete("/root/organizations/{id}", organizationHandlers.DeleteOrganization)
 	})
 }
