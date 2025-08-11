@@ -48,6 +48,7 @@ func CreateOrganization(w http.ResponseWriter, r *http.Request) {
 
 		db := database.GetDatabaseClient()
 
+		organization.ID = 0
 		if err := db.Create(organization).Error; err != nil {
 			return nil, err
 		}
@@ -112,7 +113,8 @@ func PatchMyOrganization(w http.ResponseWriter, r *http.Request) {
 
 		db := database.GetDatabaseClient()
 
-		if err := db.Model(&models.Vehicle{}).Where("id=?", authClaims.OrganizationID).Updates(organizationUpdate).Error; err != nil {
+		organizationUpdate.ID = 0
+		if err := db.Model(&models.Organization{}).Where("id=?", authClaims.OrganizationID).Updates(organizationUpdate).Error; err != nil {
 			return nil, err
 		}
 

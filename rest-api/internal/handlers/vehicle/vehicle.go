@@ -32,7 +32,7 @@ func GetVehicles(w http.ResponseWriter, r *http.Request) {
 				db = db.Or("organization_id = ? AND owner_id IS NULL", authClaims.OrganizationID)
 			}
 		case "admin":
-			db = db.Where("organization_id = ?", authClaims.UserID)
+			db = db.Where("organization_id = ?", authClaims.OrganizationID)
 		}
 
 		var vehicles []models.Vehicle
@@ -69,6 +69,7 @@ func AddVehicle(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		vehicle.ID = 0
 		db := database.GetDatabaseClient()
 		if err := db.Create(vehicle).Error; err != nil {
 			return nil, err
@@ -118,10 +119,10 @@ func UpdateVehicle(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		isOwner := vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
+		isPrivateOwner := authClaims.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
 		isOrgAdmin := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && authClaims.Role == "admin"
 
-		if !isOwner && !isOrgAdmin && authClaims.Role != "root" {
+		if !isPrivateOwner && !isOrgAdmin && authClaims.Role != "root" {
 			return nil, fmt.Errorf("Error: User is unauthorized to edit the vehicle.")
 		}
 
@@ -151,10 +152,10 @@ func DeleteVehicle(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		isOwner := vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
+		isPrivateOwner := authClaims.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
 		isOrgAdmin := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && authClaims.Role == "admin"
 
-		if !isOwner && !isOrgAdmin && authClaims.Role != "root" {
+		if !isPrivateOwner && !isOrgAdmin && authClaims.Role != "root" {
 			return fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
 		}
 

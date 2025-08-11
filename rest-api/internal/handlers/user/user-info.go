@@ -28,6 +28,7 @@ func GetMyUserInfo(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Must be either owner, admin of the user org, or root
 func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)

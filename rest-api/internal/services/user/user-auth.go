@@ -65,7 +65,7 @@ func LoginUser(userCredentials *models.UserCredentials) (*models.UserTokenRespon
 		return nil, fmt.Errorf("User does not exist.")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(userCredentials.Password), []byte(userAuth.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(userAuth.Password), []byte(userCredentials.Password)); err != nil {
 		return nil, fmt.Errorf("Invalid login credentials.")
 	}
 
@@ -92,13 +92,13 @@ func UpdateLoginCredentials(credUpdateRequest *models.UserCredentialsUpdateReque
 		return nil, fmt.Errorf("User does not exist.")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(credUpdateRequest.Password), []byte(userAuth.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(userAuth.Password), []byte(credUpdateRequest.Password)); err != nil {
 		return nil, fmt.Errorf("Invalid login credentials.")
 	}
 
 	var tempAuth models.UserAuth
 	db.Where("email = ?", credUpdateRequest.NewEmail).Find(&tempAuth)
-	if userAuth.ID != 0 {
+	if tempAuth.ID != 0 {
 		return nil, fmt.Errorf("User email is already taken.")
 	}
 

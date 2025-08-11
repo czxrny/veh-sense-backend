@@ -10,7 +10,7 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-func GetRaport(w http.ResponseWriter, r *http.Request) {
+func GetRaports(w http.ResponseWriter, r *http.Request) {
 	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Raport, error) {
 		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
 		if !ok {
