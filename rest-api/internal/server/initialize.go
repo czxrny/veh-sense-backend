@@ -35,8 +35,10 @@ func initializeHandlers(router *chi.Mux) {
 		protectedRouter.Patch("/vehicles/{id}", vehicleHandlers.UpdateVehicle)
 		protectedRouter.Delete("/vehicles/{id}", vehicleHandlers.DeleteVehicle)
 
+		protectedRouter.Get("/raports", raportHandlers.GetRaports)
+		protectedRouter.Delete("/raports/{id}", raportHandlers.DeleteRaport)
+
 		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
-		protectedRouter.Get("/me/raports", raportHandlers.GetRaports)
 		protectedRouter.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
 
 		protectedRouter.Patch("/admin/organization", organizationHandlers.PatchMyOrganization)
