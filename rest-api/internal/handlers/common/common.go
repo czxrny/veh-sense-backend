@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
 // Checks if there is a request body, invokes the inner handler and writes the response.
-func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context) ([]T, error)) {
+func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, url.Values) ([]T, error)) {
 	if !requestBodyIsEmpty(r) {
 		http.Error(w, "Request body should be empty", http.StatusBadRequest)
 	}
 
-	items, err := innerHandler(r.Context())
+	items, err := innerHandler(r.Context(), r.URL.Query())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -17,19 +18,39 @@ import (
 // If the user is an admin of organization: returns all of the organization cars
 // Root gets all the info.
 func GetVehicles(w http.ResponseWriter, r *http.Request) {
-	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Vehicle, error) {
+	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Vehicle, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
 
 		db := database.GetDatabaseClient()
+
+		if query.Has("brand") {
+			db = db.Where("brand = ?", query.Get("brand"))
+		}
+		if query.Has("minCapacity") {
+			db = db.Where("engine_capacity >= ?", query.Get("minEngineCapacity"))
+		}
+		if query.Has("maxCapacity") {
+			db = db.Where("engine_capacity <= ?", query.Get("maxEngineCapacity"))
+		}
+		if query.Has("minEnginePower") {
+			db = db.Where("engine_power >= ?", query.Get("minEnginePower"))
+		}
+		if query.Has("maxEnginePower") {
+			db = db.Where("engine_power <= ?", query.Get("maxEnginePower"))
+		}
+
 		switch authClaims.Role {
 		case "user":
-			db = db.Where("owner_id = ?", authClaims.UserID)
-			// For shared vehicles - if the user is corporate
 			if authClaims.OrganizationID != nil {
-				db = db.Or("organization_id = ? AND owner_id IS NULL", authClaims.OrganizationID)
+				db = db.Where("(owner_id = ? OR (organization_id = ? AND owner_id IS NULL))",
+					authClaims.UserID,
+					authClaims.OrganizationID,
+				)
+			} else {
+				db = db.Where("owner_id = ?", authClaims.UserID)
 			}
 		case "admin":
 			db = db.Where("organization_id = ?", authClaims.OrganizationID)

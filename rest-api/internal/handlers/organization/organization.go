@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -13,7 +14,7 @@ import (
 
 // Root only
 func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
-	common.GetAllHandler(w, r, func(ctx context.Context) ([]models.Organization, error) {
+	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Organization, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
@@ -24,6 +25,13 @@ func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
 		}
 
 		db := database.GetDatabaseClient()
+
+		if query.Has("city") {
+			db = db.Where("city = ?", query.Get("city"))
+		}
+		if query.Has("country") {
+			db = db.Where("country = ?", query.Get("country"))
+		}
 
 		var organizations []models.Organization
 		if err := db.Find(&organizations).Error; err != nil {
