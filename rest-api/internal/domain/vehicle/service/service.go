@@ -46,34 +46,34 @@ func (s *VehicleService) AddVehicle(ctx context.Context, vehicle *models.Vehicle
 	return vehicle, err
 }
 
-func (s *VehicleService) GetById(ctx context.Context, authClaims models.AuthInfo, id int) (*models.Vehicle, error) {
+func (s *VehicleService) GetById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error) {
 	vehicle, err := s.repo.GetByID(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	isOwner := vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
-	isShared := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && vehicle.OwnerID == nil
-	isOrgAdmin := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && authClaims.Role == "admin"
+	isOwner := vehicle.OwnerID != nil && *vehicle.OwnerID == authInfo.UserID
+	isShared := vehicle.OrganizationID != nil && authInfo.OrganizationID != nil && *vehicle.OrganizationID == *authInfo.OrganizationID && vehicle.OwnerID == nil
+	isOrgAdmin := vehicle.OrganizationID != nil && authInfo.OrganizationID != nil && *vehicle.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
 
-	if !isOwner && !isShared && !isOrgAdmin && authClaims.Role != "root" {
+	if !isOwner && !isShared && !isOrgAdmin && authInfo.Role != "root" {
 		return nil, fmt.Errorf("Error: User is unauthorized to view the vehicle.")
 	}
 
 	return vehicle, nil
 }
 
-func (s *VehicleService) UpdateById(ctx context.Context, authClaims models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
+func (s *VehicleService) UpdateById(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
 	vehicle, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	isPrivateOwner := authClaims.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
-	isOrgAdmin := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && authClaims.Role == "admin"
+	isPrivateOwner := authInfo.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authInfo.UserID
+	isOrgAdmin := vehicle.OrganizationID != nil && authInfo.OrganizationID != nil && *vehicle.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
 
-	if !isPrivateOwner && !isOrgAdmin && authClaims.Role != "root" {
+	if !isPrivateOwner && !isOrgAdmin && authInfo.Role != "root" {
 		return nil, fmt.Errorf("Error: User is unauthorized to edit the vehicle.")
 	}
 
@@ -85,16 +85,16 @@ func (s *VehicleService) UpdateById(ctx context.Context, authClaims models.AuthI
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *VehicleService) DeleteById(ctx context.Context, authClaims models.AuthInfo, id int) error {
+func (s *VehicleService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
 	vehicle, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	isPrivateOwner := authClaims.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authClaims.UserID
-	isOrgAdmin := vehicle.OrganizationID != nil && authClaims.OrganizationID != nil && *vehicle.OrganizationID == *authClaims.OrganizationID && authClaims.Role == "admin"
+	isPrivateOwner := authInfo.OrganizationID == nil && vehicle.OwnerID != nil && *vehicle.OwnerID == authInfo.UserID
+	isOrgAdmin := vehicle.OrganizationID != nil && authInfo.OrganizationID != nil && *vehicle.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
 
-	if !isPrivateOwner && !isOrgAdmin && authClaims.Role != "root" {
+	if !isPrivateOwner && !isOrgAdmin && authInfo.Role != "root" {
 		return fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
 	}
 

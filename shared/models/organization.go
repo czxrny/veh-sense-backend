@@ -10,3 +10,18 @@ type Organization struct {
 	CountryCode   string `json:"country_code" validate:"required"`
 	ContactNumber string `json:"contact_number" validate:"required"`
 }
+
+type OrganizationUpdate struct {
+	Name          string `json:"name"`
+	Address       string `json:"address"`
+	City          string `json:"city"`
+	Country       string `json:"country"`
+	ZipCode       string `json:"zip_code"`
+	CountryCode   string `json:"country_code"`
+	ContactNumber string `json:"contact_number"`
+}
+
+type OrganizationFilter struct {
+	City    string
+	Country string
+}

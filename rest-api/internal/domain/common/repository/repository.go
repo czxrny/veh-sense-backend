@@ -26,9 +26,9 @@ func (r *CommonRepository[T]) GetByID(ctx context.Context, id int) (*T, error) {
 	return &entity, nil
 }
 
-// func (r *CommonRepository[T]) Update(ctx context.Context, entity *T) error {
-// 	return r.db.WithContext(ctx).Save(entity).Error
-// }
+func (r *CommonRepository[T]) Update(ctx context.Context, entity *T) error {
+	return r.db.WithContext(ctx).Save(entity).Error
+}
 
 func (r *CommonRepository[T]) Delete(ctx context.Context, entity *T) error {
 	return r.db.WithContext(ctx).Delete(entity).Error

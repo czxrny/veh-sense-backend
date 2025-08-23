@@ -21,6 +21,7 @@ func InitializeAndStart(app *database.App) error {
 
 func initializeHandlers(app *database.App) *chi.Mux {
 	vehHandler := v.NewVehicleHandler(app.VehicleService)
+	orgHandler := o.NewOrganizationHandler(app.OrganizationService)
 
 	router := chi.NewRouter()
 	// Public endpoints
@@ -42,18 +43,18 @@ func initializeHandlers(app *database.App) *chi.Mux {
 		protectedRouter.Delete("/raports/{id}", raportHandlers.DeleteRaport)
 
 		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
-		protectedRouter.Get("/me/organization", o.GetMyOrganizationInfo)
+		protectedRouter.Get("/me/organization", orgHandler.GetMyOrganizationInfo)
 
-		protectedRouter.Patch("/admin/organization", o.PatchMyOrganization)
+		protectedRouter.Patch("/admin/organization", orgHandler.UpdateMyOrganization)
 		protectedRouter.Post("/admin/users", userHandlers.RegisterCorporateUser)
 		protectedRouter.Get("/admin/users", userHandlers.GetAllUsersInfo)
 
 		protectedRouter.Delete("/users/{id}", userHandlers.DeleteUserById)
 
 		protectedRouter.Post("/root/admins", userHandlers.RegisterUserRoot)
-		protectedRouter.Post("/root/organizations", o.CreateOrganization)
-		protectedRouter.Get("/root/organizations", o.GetAllOrganizations)
-		protectedRouter.Delete("/root/organizations/{id}", o.DeleteOrganization)
+		protectedRouter.Post("/root/organizations", orgHandler.CreateOrganization)
+		protectedRouter.Get("/root/organizations", orgHandler.GetAllOrganizations)
+		protectedRouter.Delete("/root/organizations/{id}", orgHandler.DeleteOrganization)
 	})
 
 	return router

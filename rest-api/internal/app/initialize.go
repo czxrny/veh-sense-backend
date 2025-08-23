@@ -8,8 +8,11 @@ import (
 
 	"github.com/czxrny/veh-sense-backend/shared/models"
 
-	vr "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/repository"
-	vs "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
+	vRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/repository"
+	vServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
+
+	oRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/repository"
+	oServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/service"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -19,7 +22,8 @@ import (
 var databaseClient *gorm.DB
 
 type App struct {
-	VehicleService *vs.VehicleService
+	VehicleService      *vServ.VehicleService
+	OrganizationService *oServ.OrganizationService
 }
 
 func NewApp() (*App, error) {
@@ -33,12 +37,15 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("migration failed: " + err.Error())
 	}
 
-	VehicleRepo := vr.NewVehicleRepository(databaseClient)
+	VehicleRepo := vRepo.NewVehicleRepository(databaseClient)
+	OrganizationRepo := oRepo.NewOrganizationRepository(databaseClient)
 
-	VehicleService := vs.NewVehicleService(VehicleRepo)
+	VehicleService := vServ.NewVehicleService(VehicleRepo)
+	OrganizationService := oServ.NewOrganizationService(OrganizationRepo)
 
 	return &App{
-		VehicleService: VehicleService,
+		VehicleService:      VehicleService,
+		OrganizationService: OrganizationService,
 	}, nil
 }
 
