@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	c "github.com/czxrny/veh-sense-backend/rest-api/internal/repositories/common"
+	c "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/repository"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	"gorm.io/gorm"
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	userService "github.com/czxrny/veh-sense-backend/rest-api/internal/services/user"
 	"github.com/czxrny/veh-sense-backend/shared/models"

@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
+	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
