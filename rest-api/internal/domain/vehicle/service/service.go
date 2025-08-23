@@ -1,18 +1,18 @@
-package vehicle
+package service
 
 import (
 	"context"
 	"fmt"
 
-	v "github.com/czxrny/veh-sense-backend/rest-api/internal/repositories/vehicle"
+	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/repository"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
 type VehicleService struct {
-	repo *v.VehicleRepository
+	repo *r.VehicleRepository
 }
 
-func NewVehicleService(repo *v.VehicleRepository) *VehicleService {
+func NewVehicleService(repo *r.VehicleRepository) *VehicleService {
 	return &VehicleService{repo: repo}
 }
 

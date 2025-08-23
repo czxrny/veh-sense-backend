@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
+	v "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/handler"
 	organizationHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/organization"
 	raportHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/raport"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
-	vehicleHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/vehicle"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/go-chi/chi"
 )
@@ -20,7 +20,7 @@ func InitializeAndStart(app *database.App) error {
 }
 
 func initializeHandlers(app *database.App) *chi.Mux {
-	vehHandler := vehicleHandlers.NewVehicleHandler(app.VehicleService)
+	vehHandler := v.NewVehicleHandler(app.VehicleService)
 
 	router := chi.NewRouter()
 	// Public endpoints

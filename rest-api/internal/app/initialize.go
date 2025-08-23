@@ -8,8 +8,8 @@ import (
 
 	"github.com/czxrny/veh-sense-backend/shared/models"
 
-	vr "github.com/czxrny/veh-sense-backend/rest-api/internal/repositories/vehicle"
-	vs "github.com/czxrny/veh-sense-backend/rest-api/internal/services/vehicle"
+	vr "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/repository"
+	vs "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
 
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"

@@ -1,4 +1,4 @@
-package vehicle
+package handler
 
 import (
 	"context"
@@ -6,13 +6,11 @@ import (
 	"net/http"
 	"net/url"
 
+	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/common"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
-	s "github.com/czxrny/veh-sense-backend/rest-api/internal/services/vehicle"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
-
-var vehicleService s.VehicleService
 
 type VehicleHandler struct {
 	*s.VehicleService

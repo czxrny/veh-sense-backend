@@ -1,4 +1,4 @@
-package vehicle
+package repository
 
 import (
 	"context"
