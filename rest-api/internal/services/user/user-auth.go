@@ -3,8 +3,8 @@ package user
 import (
 	"fmt"
 
+	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	"github.com/czxrny/veh-sense-backend/shared/auth"
-	"github.com/czxrny/veh-sense-backend/shared/database"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	"golang.org/x/crypto/bcrypt"
 )

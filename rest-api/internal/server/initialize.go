@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	organizationHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/organization"
 	raportHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/raport"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
@@ -12,14 +13,16 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func InitializeAndStart() error {
-	router := chi.NewRouter()
-	initializeHandlers(router)
+func InitializeAndStart(app *database.App) error {
+	router := initializeHandlers(app)
 	fmt.Println("Starting the HTTP server on port 8080...")
 	return http.ListenAndServe(":8080", router)
 }
 
-func initializeHandlers(router *chi.Mux) {
+func initializeHandlers(app *database.App) *chi.Mux {
+	vehHandler := vehicleHandlers.NewVehicleHandler(app.VehicleService)
+
+	router := chi.NewRouter()
 	// Public endpoints
 	router.Post("/auth/signup", userHandlers.RegisterPrivateUser)
 	router.Post("/auth/login", userHandlers.LoginUser)
@@ -29,11 +32,11 @@ func initializeHandlers(router *chi.Mux) {
 	router.Group(func(protectedRouter chi.Router) {
 		protectedRouter.Use(middleware.JWTClaimsMiddleware)
 
-		protectedRouter.Get("/vehicles", vehicleHandlers.GetVehicles)
-		protectedRouter.Post("/vehicles", vehicleHandlers.AddVehicle)
-		protectedRouter.Get("/vehicles/{id}", vehicleHandlers.GetVehicleById)
-		protectedRouter.Patch("/vehicles/{id}", vehicleHandlers.UpdateVehicle)
-		protectedRouter.Delete("/vehicles/{id}", vehicleHandlers.DeleteVehicle)
+		protectedRouter.Get("/vehicles", vehHandler.GetVehicles)
+		protectedRouter.Post("/vehicles", vehHandler.AddVehicle)
+		protectedRouter.Get("/vehicles/{id}", vehHandler.GetVehicleById)
+		protectedRouter.Patch("/vehicles/{id}", vehHandler.UpdateVehicle)
+		protectedRouter.Delete("/vehicles/{id}", vehHandler.DeleteVehicle)
 
 		protectedRouter.Get("/raports", raportHandlers.GetRaports)
 		protectedRouter.Delete("/raports/{id}", raportHandlers.DeleteRaport)
@@ -52,4 +55,6 @@ func initializeHandlers(router *chi.Mux) {
 		protectedRouter.Get("/root/organizations", organizationHandlers.GetAllOrganizations)
 		protectedRouter.Delete("/root/organizations/{id}", organizationHandlers.DeleteOrganization)
 	})
+
+	return router
 }

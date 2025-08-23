@@ -18,3 +18,13 @@ type VehicleUpdate struct {
 	Plates       string  `json:"plates"`
 	ExpectedFuel float64 `json:"expected_fuel" validate:"gte=0"`
 }
+type VehicleFilter struct {
+	Brand          string
+	MinCapacity    string
+	MaxCapacity    string
+	MinEnginePower string
+	MaxEnginePower string
+	UserID         int
+	OrganizationID *int
+	Role           string
+}
