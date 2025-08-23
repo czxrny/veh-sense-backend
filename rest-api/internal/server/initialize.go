@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
+	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/handler"
 	v "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/handler"
-	organizationHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/organization"
 	raportHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/raport"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -42,18 +42,18 @@ func initializeHandlers(app *database.App) *chi.Mux {
 		protectedRouter.Delete("/raports/{id}", raportHandlers.DeleteRaport)
 
 		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
-		protectedRouter.Get("/me/organization", organizationHandlers.GetMyOrganizationInfo)
+		protectedRouter.Get("/me/organization", o.GetMyOrganizationInfo)
 
-		protectedRouter.Patch("/admin/organization", organizationHandlers.PatchMyOrganization)
+		protectedRouter.Patch("/admin/organization", o.PatchMyOrganization)
 		protectedRouter.Post("/admin/users", userHandlers.RegisterCorporateUser)
 		protectedRouter.Get("/admin/users", userHandlers.GetAllUsersInfo)
 
 		protectedRouter.Delete("/users/{id}", userHandlers.DeleteUserById)
 
 		protectedRouter.Post("/root/admins", userHandlers.RegisterUserRoot)
-		protectedRouter.Post("/root/organizations", organizationHandlers.CreateOrganization)
-		protectedRouter.Get("/root/organizations", organizationHandlers.GetAllOrganizations)
-		protectedRouter.Delete("/root/organizations/{id}", organizationHandlers.DeleteOrganization)
+		protectedRouter.Post("/root/organizations", o.CreateOrganization)
+		protectedRouter.Get("/root/organizations", o.GetAllOrganizations)
+		protectedRouter.Delete("/root/organizations/{id}", o.DeleteOrganization)
 	})
 
 	return router
