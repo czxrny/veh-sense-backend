@@ -6,8 +6,8 @@ import (
 
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/handler"
+	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/handler"
 	v "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/handler"
-	raportHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/raport"
 	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/go-chi/chi"
@@ -22,6 +22,7 @@ func InitializeAndStart(app *database.App) error {
 func initializeHandlers(app *database.App) *chi.Mux {
 	vehHandler := v.NewVehicleHandler(app.VehicleService)
 	orgHandler := o.NewOrganizationHandler(app.OrganizationService)
+	rapHandler := r.NewRaportHandler(app.RaportService)
 
 	router := chi.NewRouter()
 	// Public endpoints
@@ -39,8 +40,8 @@ func initializeHandlers(app *database.App) *chi.Mux {
 		protectedRouter.Patch("/vehicles/{id}", vehHandler.UpdateVehicle)
 		protectedRouter.Delete("/vehicles/{id}", vehHandler.DeleteVehicle)
 
-		protectedRouter.Get("/raports", raportHandlers.GetRaports)
-		protectedRouter.Delete("/raports/{id}", raportHandlers.DeleteRaport)
+		protectedRouter.Get("/raports", rapHandler.GetRaports)
+		protectedRouter.Delete("/raports/{id}", rapHandler.DeleteRaport)
 
 		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
 		protectedRouter.Get("/me/organization", orgHandler.GetMyOrganizationInfo)

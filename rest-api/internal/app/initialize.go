@@ -14,6 +14,9 @@ import (
 	oRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/repository"
 	oServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/service"
 
+	rRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/repository"
+	rServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/service"
+
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,6 +27,7 @@ var databaseClient *gorm.DB
 type App struct {
 	VehicleService      *vServ.VehicleService
 	OrganizationService *oServ.OrganizationService
+	RaportService       *rServ.RaportService
 }
 
 func NewApp() (*App, error) {
@@ -39,13 +43,16 @@ func NewApp() (*App, error) {
 
 	VehicleRepo := vRepo.NewVehicleRepository(databaseClient)
 	OrganizationRepo := oRepo.NewOrganizationRepository(databaseClient)
+	RaportRepo := rRepo.NewRaportRepository(databaseClient)
 
 	VehicleService := vServ.NewVehicleService(VehicleRepo)
 	OrganizationService := oServ.NewOrganizationService(OrganizationRepo)
+	RaportService := rServ.NewRaportService(RaportRepo)
 
 	return &App{
 		VehicleService:      VehicleService,
 		OrganizationService: OrganizationService,
+		RaportService:       RaportService,
 	}, nil
 }
 

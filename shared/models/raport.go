@@ -18,6 +18,14 @@ type Raport struct {
 	AverageSpeed        float64   `json:"average_speed"`
 }
 
+type RaportFilter struct {
+	CreatedAfter   string
+	CreatedBefore  string
+	UserID         int
+	OrganizationID *int
+	Role           string
+}
+
 var Styles = []string{
 	"Gentle",
 	"Moderate",
