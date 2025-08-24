@@ -14,7 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateToken(userAuth models.UserAuth, userInfo models.UserInfo) (string, error) {
+func CreateToken(userAuth *models.UserAuth, userInfo *models.UserInfo) (string, error) {
 	claims := jwt.MapClaims{
 		"lid": userAuth.ID,
 		"rol": userAuth.Role,

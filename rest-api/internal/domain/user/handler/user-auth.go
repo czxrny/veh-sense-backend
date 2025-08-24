@@ -6,28 +6,39 @@ import (
 	"net/http"
 
 	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
+	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/service"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
-	userService "github.com/czxrny/veh-sense-backend/rest-api/internal/services/user"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-func RegisterPrivateUser(w http.ResponseWriter, r *http.Request) {
+type UserAuthHandler struct {
+	*s.UserService
+}
+
+func NewUserAuthHandler(userService *s.UserService) *UserAuthHandler {
+	return &UserAuthHandler{
+		UserService: userService,
+	}
+}
+
+func (uh *UserAuthHandler) RegisterPrivateUser(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
-		return userService.RegisterUser(userRegisterInfo, nil, "user")
+		return uh.UserService.RegisterUser(ctx, userRegisterInfo, nil, "user")
 	})
 }
 
-func RegisterCorporateUser(w http.ResponseWriter, r *http.Request) {
+func (uh *UserAuthHandler) RegisterCorporateUser(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "admin" {
 			return nil, fmt.Errorf("Error: to create an organization user, login as an admin and pass the JWT!")
 		}
-		return userService.RegisterUser(userRegisterInfo, authClaims.OrganizationID, authClaims.Role)
+
+		return uh.UserService.RegisterUser(ctx, userRegisterInfo, authClaims.OrganizationID, "user")
 	})
 }
 
-func RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
+func (uh *UserAuthHandler) RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfoRoot) (*models.UserTokenResponse, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "root" {
@@ -40,19 +51,23 @@ func RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
 			Password: userRegisterInfo.Password,
 		}
 
-		return userService.RegisterUser(&userInfo, userRegisterInfo.OrganizationID, userRegisterInfo.Role)
+		return uh.UserService.RegisterUser(ctx, &userInfo, userRegisterInfo.OrganizationID, userRegisterInfo.Role)
 	})
 }
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+func (uh *UserAuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, userCredentials *models.UserCredentials) (*models.UserTokenResponse, error) {
-		return userService.LoginUser(userCredentials)
+		return uh.UserService.LoginUser(ctx, userCredentials)
 	})
 }
 
 // Requires the user to login and pass updated information
-func UpdateLoginCredentials(w http.ResponseWriter, r *http.Request) {
+func (uh *UserAuthHandler) UpdateLoginCredentials(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, credUpdateRequest *models.UserCredentialsUpdateRequest) (*models.UserTokenResponse, error) {
-		return userService.UpdateLoginCredentials(credUpdateRequest)
+		if credUpdateRequest.NewEmail == "" || credUpdateRequest.NewPassword == "" {
+			return nil, fmt.Errorf("User should pass email or password, or both to update")
+		}
+
+		return uh.UserService.UpdateLoginCredentials(ctx, credUpdateRequest)
 	})
 }

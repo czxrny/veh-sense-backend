@@ -17,6 +17,9 @@ import (
 	rRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/repository"
 	rServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/service"
 
+	uRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/repository"
+	uServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/service"
+
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -28,6 +31,7 @@ type App struct {
 	VehicleService      *vServ.VehicleService
 	OrganizationService *oServ.OrganizationService
 	RaportService       *rServ.RaportService
+	UserService         *uServ.UserService
 }
 
 func NewApp() (*App, error) {
@@ -44,15 +48,19 @@ func NewApp() (*App, error) {
 	VehicleRepo := vRepo.NewVehicleRepository(databaseClient)
 	OrganizationRepo := oRepo.NewOrganizationRepository(databaseClient)
 	RaportRepo := rRepo.NewRaportRepository(databaseClient)
+	UserAuthRepository := uRepo.NewUserAuthRepository(databaseClient)
+	UserInfoRepository := uRepo.NewUserInfoRepository(databaseClient)
 
 	VehicleService := vServ.NewVehicleService(VehicleRepo)
 	OrganizationService := oServ.NewOrganizationService(OrganizationRepo)
 	RaportService := rServ.NewRaportService(RaportRepo)
+	UserService := uServ.NewUserService(UserAuthRepository, UserInfoRepository)
 
 	return &App{
 		VehicleService:      VehicleService,
 		OrganizationService: OrganizationService,
 		RaportService:       RaportService,
+		UserService:         UserService,
 	}, nil
 }
 

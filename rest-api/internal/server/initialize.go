@@ -7,8 +7,8 @@ import (
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/handler"
 	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/handler"
+	u "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/handler"
 	v "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/handler"
-	userHandlers "github.com/czxrny/veh-sense-backend/rest-api/internal/handlers/user"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
 	"github.com/go-chi/chi"
 )
@@ -23,12 +23,14 @@ func initializeHandlers(app *database.App) *chi.Mux {
 	vehHandler := v.NewVehicleHandler(app.VehicleService)
 	orgHandler := o.NewOrganizationHandler(app.OrganizationService)
 	rapHandler := r.NewRaportHandler(app.RaportService)
+	userAuthHandler := u.NewUserAuthHandler(app.UserService)
+	userInfoHandler := u.NewUserInfoHandler(app.UserService)
 
 	router := chi.NewRouter()
 	// Public endpoints
-	router.Post("/auth/signup", userHandlers.RegisterPrivateUser)
-	router.Post("/auth/login", userHandlers.LoginUser)
-	router.Patch("/me/password", userHandlers.UpdateLoginCredentials)
+	router.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
+	router.Post("/auth/login", userAuthHandler.LoginUser)
+	router.Patch("/me/password", userAuthHandler.UpdateLoginCredentials)
 
 	// Endpoints that require the JWT
 	router.Group(func(protectedRouter chi.Router) {
@@ -43,16 +45,16 @@ func initializeHandlers(app *database.App) *chi.Mux {
 		protectedRouter.Get("/raports", rapHandler.GetRaports)
 		protectedRouter.Delete("/raports/{id}", rapHandler.DeleteRaport)
 
-		protectedRouter.Get("/me", userHandlers.GetMyUserInfo)
+		protectedRouter.Get("/me", userInfoHandler.GetMyUserInfo)
 		protectedRouter.Get("/me/organization", orgHandler.GetMyOrganizationInfo)
 
 		protectedRouter.Patch("/admin/organization", orgHandler.UpdateMyOrganization)
-		protectedRouter.Post("/admin/users", userHandlers.RegisterCorporateUser)
-		protectedRouter.Get("/admin/users", userHandlers.GetAllUsersInfo)
+		protectedRouter.Post("/admin/users", userAuthHandler.RegisterCorporateUser)
+		protectedRouter.Get("/admin/users", userInfoHandler.GetAllUsersInfo)
 
-		protectedRouter.Delete("/users/{id}", userHandlers.DeleteUserById)
+		protectedRouter.Delete("/users/{id}", userInfoHandler.DeleteUserById)
 
-		protectedRouter.Post("/root/admins", userHandlers.RegisterUserRoot)
+		protectedRouter.Post("/root/admins", userAuthHandler.RegisterUserRoot)
 		protectedRouter.Post("/root/organizations", orgHandler.CreateOrganization)
 		protectedRouter.Get("/root/organizations", orgHandler.GetAllOrganizations)
 		protectedRouter.Delete("/root/organizations/{id}", orgHandler.DeleteOrganization)
