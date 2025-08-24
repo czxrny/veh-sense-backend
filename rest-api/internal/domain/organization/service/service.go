@@ -63,8 +63,7 @@ func (s *OrganizationService) UpdateMyOrganization(ctx context.Context, authInfo
 }
 
 func (s *OrganizationService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
-	organization, err := s.repo.GetByID(ctx, id)
-	if err != nil {
+	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return err
 	}
 
@@ -72,5 +71,5 @@ func (s *OrganizationService) DeleteById(ctx context.Context, authInfo models.Au
 		return fmt.Errorf("Error: User is unauthorized to add the asset.")
 	}
 
-	return s.repo.Delete(ctx, organization)
+	return s.repo.DeleteById(ctx, id)
 }

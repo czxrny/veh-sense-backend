@@ -33,5 +33,5 @@ func (s *RaportService) DeleteById(ctx context.Context, authInfo models.AuthInfo
 		return fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
 	}
 
-	return s.repo.Delete(ctx, raport)
+	return s.repo.DeleteById(ctx, id)
 }

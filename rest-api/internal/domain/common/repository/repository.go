@@ -30,8 +30,9 @@ func (r *CommonRepository[T]) Update(ctx context.Context, entity *T) error {
 	return r.db.WithContext(ctx).Save(entity).Error
 }
 
-func (r *CommonRepository[T]) Delete(ctx context.Context, entity *T) error {
-	return r.db.WithContext(ctx).Delete(entity).Error
+func (r *CommonRepository[T]) DeleteById(ctx context.Context, id int) error {
+	var zero T
+	return r.db.WithContext(ctx).Delete(&zero, id).Error
 }
 
 func (r *CommonRepository[T]) List(ctx context.Context) ([]T, error) {
