@@ -20,10 +20,12 @@ type VehicleUpdate struct {
 }
 type VehicleFilter struct {
 	Brand          string
+	Model          string
 	MinCapacity    string
 	MaxCapacity    string
 	MinEnginePower string
 	MaxEnginePower string
+	Plates         string
 	UserID         int
 	OrganizationID *int
 	Role           string

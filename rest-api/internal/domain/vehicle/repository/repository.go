@@ -28,6 +28,9 @@ func (r *VehicleRepository) FindAll(ctx context.Context, filter models.VehicleFi
 	if filter.Brand != "" {
 		db = db.Where("brand = ?", filter.Brand)
 	}
+	if filter.Model != "" {
+		db = db.Where("model = ?", filter.Model)
+	}
 	if filter.MinCapacity != "" {
 		db = db.Where("engine_capacity >= ?", filter.MinCapacity)
 	}
@@ -39,6 +42,9 @@ func (r *VehicleRepository) FindAll(ctx context.Context, filter models.VehicleFi
 	}
 	if filter.MaxEnginePower != "" {
 		db = db.Where("engine_power <= ?", filter.MaxEnginePower)
+	}
+	if filter.Plates != "" {
+		db = db.Where("plates = ?", filter.Plates)
 	}
 
 	switch filter.Role {

@@ -36,10 +36,12 @@ func (v *VehicleHandler) GetVehicles(w http.ResponseWriter, r *http.Request) {
 
 		filter := models.VehicleFilter{
 			Brand:          query.Get("brand"),
+			Model:          query.Get("model"),
 			MinCapacity:    query.Get("minEngineCapacity"),
 			MaxCapacity:    query.Get("maxEngineCapacity"),
 			MinEnginePower: query.Get("minEnginePower"),
 			MaxEnginePower: query.Get("maxEnginePower"),
+			Plates:         query.Get("plates"),
 			UserID:         authClaims.UserID,
 			OrganizationID: authClaims.OrganizationID,
 			Role:           authClaims.Role,
