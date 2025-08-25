@@ -1,0 +1,1199 @@
+openapi: 3.0.4
+info:
+  title: VehSense Backend REST API
+  description: |-
+    The "VehSense Backend REST API” provides an intuitive communication with a client
+    application by provading information about the drivers, analyzing the data and providing reports.
+  contact:
+    email: czxxxrny@gmail.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.1
+tags:
+  - name: Auth / Users
+    description: >
+      Endpoints for user authentication and profile management.
+      Includes signup, login, updating credentials, and accessing personal user information.
+
+  - name: Vehicles
+    description: >
+      Endpoints for managing vehicles.
+      Includes listing, creating, updating, and deleting vehicle records associated with the user.
+
+  - name: Raports
+    description: >
+      Endpoints for handling reports.
+      Includes retrieving, listing, and deleting driving reports and performance data of vehicles.
+
+  - name: Admin / Organization
+    description: >
+      Endpoints for administrators to manage their organization.
+      Allows updating organization details and accessing organization-specific information.
+
+  - name: Admin / Users
+    description: >
+      Endpoints for administrators to manage users within their organization.
+      Includes creating new users, listing all users, and deleting users.
+
+  - name: Root / Admins
+    description: >
+      Endpoints for root users to manage administrator accounts.
+      Includes creating new admin accounts and managing global access.
+
+  - name: Root / Organizations
+    description: >
+      Endpoints for root users to manage organizations in the system.
+      Includes creating, listing, and deleting organizations.
+
+paths:
+  /auth/signup:
+     post:
+      tags:
+        - Auth / Users
+      summary: Register as a new private user.
+      description: Pass user register info, create a new private user in database and get JWT token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterInfo"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTokenResponse"
+        "400":
+          description: Bad request body
+        "401":
+          description: Invalid credentials
+        "409":
+          description: Email already exist in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/login:
+    post:
+      tags:
+        - Auth / Users
+      summary: Login with user credentials.
+      description: Pass user login credentials to get JWT token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCredentials"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTokenResponse"
+        "400":
+          description: Bad request body
+        "401":
+          description: Invalid credentials
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/{id}:
+    delete:
+      tags:
+        - Auth / Users
+      summary: Delete user.
+      description: Delete specified user. Requires JWT token with exact same user ID, or admin role. 
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the user to delete.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User successfully deleted (no content)
+        "400":
+          description: Invalid user ID
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        "404":
+          description: User not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /me/credentials:
+    patch:
+      tags:
+        - Auth / Users
+      summary: Update user login credentials.
+      description: Update user email and/or password.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCredentialsUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit credentials
+        "404":
+          description: User not found
+        "409":
+          description: Email already exists in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /me:
+    get:
+        tags:
+          - Auth / Users
+        summary: Get my user info.
+        description: Get my user info. Requires JWT Token.
+        security:
+              - bearerAuth: []
+        responses:
+          "200":
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/UserInfo"
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+  /me/organization:
+    get:
+        tags:
+          - Auth / Users
+        summary: Get my organization info.
+        description: Get my organization info. Requires JWT Token.
+        security:
+              - bearerAuth: []
+        responses:
+          "200":
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Organization"
+          "401":
+            description: Validation error
+          "404":
+            description: User does not have an organization
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+  /vehicle:
+    post:
+      tags:
+        - Vehicles
+      summary: Add a new vehicle.
+      description: Adds a new vehicle. New vehicle is indexed automatically. Requires a JWT Token.
+      security:
+      - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewVehicle"
+        required: true
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to add the asset
+        "409":
+          description: vehicle already exists in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Vehicles
+      summary: Get vehicles by the query parameters.
+      description: Get all the vehicles that match the criteria. Used only by the owner of the vehicle to get all of his cars, or the admin of the organization. 
+      security:
+              - bearerAuth: []
+      parameters:
+        - name: brand
+          in: query
+          description: Filter by vehicle brand, e.g. "Toyota"
+          required: false
+          schema:
+            type: string
+            example: "Toyota"
+
+        - name: model
+          in: query
+          description: Filter by vehicle model, e.g. "Corolla"
+          required: false
+          schema:
+            type: string
+            example: "Corolla"
+
+        - name: year
+          in: query
+          description: Filter by vehicle manufacturing year
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 2017
+
+        - name: engine_capacity_min
+          in: query
+          description: Minimum engine capacity in cubic centimeters (cc)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1400
+
+        - name: engine_capacity_max
+          in: query
+          description: Maximum engine capacity in cubic centimeters (cc)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 2000
+
+        - name: engine_power_min
+          in: query
+          description: Minimum engine power in horsepower (HP)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 100
+
+        - name: engine_power_max
+          in: query
+          description: Maximum engine power in horsepower (HP)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 200
+
+        - name: plates
+          in: query
+          description: Filter by vehicle license plate (partial or full)
+          required: false
+          schema:
+            type: string
+            example: "ST 1222W"
+
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /vehicle/{id}:
+    patch:
+      tags:
+        - Vehicles
+      summary: Update an existing vehicle.
+      description: Update an existing vehicle by Id. requires a JWT Token an admin / owner of the vehicle to edit.
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique ID of the vehicle to retrieve.
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleUpdate"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        "404":
+          description: vehicle not found
+        "409":
+          description: vehicle already exists in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Vehicles
+      summary: Get a vehicle by its ID.
+      description: Retrieve details of a specific vehicle using its unique ID. Requires a JWT Token an organization admin / owner of the vehicle.
+      security:
+              - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique ID of the vehicle to retrieve.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Successfully retrieved the vehicle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset  
+        "404":
+          description: vehicle not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - Vehicles
+      summary: Delete a vehicle.
+      description: Deletes a specific vehicle by its ID. Requires a JWT Token an organization admin / owner of the vehicle.
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the vehicle to delete.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: vehicle successfully deleted (no content)
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        "404":
+          description: vehicle not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /raport:
+    get:
+      tags:
+        - Raports
+      summary: Get raports by the query parameters.
+      description: Get all the raport that match the criteria. Used only by the owner of the raports, or the admin of the organization. Requires the JWT token. 
+      security:
+              - bearerAuth: []
+      parameters:
+        - name: createdAfter
+          in: query
+          description: Filter vehicles created after this timestamp (Unix time, seconds since 1970-01-01 UTC)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1692960000
+
+        - name: createdBefore
+          in: query
+          description: Filter vehicles created before this timestamp (Unix time, seconds since 1970-01-01 UTC)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1693046400
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /raport/{id}:
+    delete:
+      tags:
+        - Raports
+      summary: Delete a raport.
+      description: Deletes a raport vehicle by its ID. Requires a JWT Token an organization admin / owner of the raport.
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the raport to delete.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Raport successfully deleted (no content)
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        "404":
+          description: Raport not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/users:
+    post:
+      tags:
+        - Admin / Users
+      summary: Add a new organization users.
+      description: Adds new organization users. Requires a JWT Token of an organization admin. The user organization_id then set based on the JWT Token.
+      security:
+      - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterInfo"
+        required: true
+      responses:
+        "201":
+          description: Successful operation
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to add organization users
+        "409":
+          description: Email already exists in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Admin / Users
+      summary: Get all organization users.
+      description: Get all organization users. Requires a JWT Token of an admin of the organization. 
+      security:
+              - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to see the organization users
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/organization:
+    patch:
+      tags:
+        - Admin / Organization
+      summary: Update my organization.
+      description: Update an existing organization based on JWT. Requires an admin JWT Token.
+      security:
+      - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationUpdate"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /root/admins:
+    post:
+      tags:
+        - Root / Admins
+      summary: Add a new organization admin.
+      description: Adds new organization admin. Requires a JWT Token of the root.
+      security:
+      - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterInfoRoot"
+        required: true
+      responses:
+        "201":
+          description: Successful operation
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to add organization users
+        "409":
+          description: Email already exists in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /root/organizations:
+    post:
+      tags:
+        - Root / Organizations
+      summary: Add a new organization.
+      description: Adds a new organization. Requires a JWT Token of the root.
+      security:
+      - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewOrganization"
+        required: true
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to add the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Root / Organizations
+      summary: Get organizations by the query parameters.
+      description: Get all the organizations that match the criteria. Requires JWT Token of the root. 
+      security:
+              - bearerAuth: []
+      parameters:
+        - name: city
+          in: query
+          description: Filter by organization city, e.g. "Sosnowiec"
+          required: false
+          schema:
+            type: string
+            example: "Sosnowiec"
+
+        - name: country
+          in: query
+          description: Filter by organization country, e.g. "Poland"
+          required: false
+          schema:
+            type: string
+            example: "Poland"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vehicle"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the assets
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /root/organizations/{id}:
+    delete:
+      tags:
+        - Root / Organizations
+      summary: Delete an organization.
+      description: Deletes a specific organization by its ID. Requires a JWT Token of the root.
+      security:
+      - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the organization to delete.
+          schema:
+            type: string
+      responses:
+        "204":
+          description: vehicle successfully deleted (no content)
+        "400":
+          description: Invalid parameters 
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to edit the asset
+        "404":
+          description: vehicle not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+  schemas:
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        user_name:
+          type: string
+          description: Drivers display name.
+          example: Konrado
+        total_kilometers:
+          type: integer
+          format: int64
+          description: Overall kilometers driven by the driver.
+          example: 223
+        orgranization_id:
+          type: number
+          format: float
+          example: 12
+          description: Organization ID of the driver. Can be null if the driver is a private user.
+    UserRegisterInfo:
+      type: object
+      description: Information required to register a user.
+      required:
+      - name
+      - email
+      - password
+      properties:
+        name:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: "12345"
+    UserCredentials:
+      type: object
+      description: Information required to login as a user.
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: "12345"
+    UserRegisterInfoRoot:
+      type: object
+      description: Information required to register custom user as a root.
+      required:
+      - name
+      - email
+      - password
+      - organization_id
+      properties:
+        name:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: "12345"
+        organization_id:
+          type: integer
+          format: int64
+          example: 2
+    UserCredentialsUpdateRequest:
+      type: object
+      description: >
+        Information required to update user credentials.
+        Current email and password are always required for authentication.
+        At least one of new_email or new_password must be provided.
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: Current email of the user (used for authentication).
+          example: john@email.com
+        password:
+          type: string
+          description: Current password of the user (used for authentication).
+          example: "12345"
+        new_email:
+          type: string
+          description: New email to update (optional).
+          example: new_john@email.com
+        new_password:
+          type: string
+          description: New password to update (optional).
+          example: "new_12345"
+    Vehicle:
+      type: object
+      description: >
+        Vehicle information. Includes either both
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        owner_id:
+          type: integer
+          format: int64
+          description: Owner of the vehicle. Can be null if the vehicle is from organization and is shared.
+          example: 10
+        organization_id:
+          type: integer
+          format: int64
+          description: Organization that is the owner of the vehicle. Can be null if the vehicle is private.
+          example: 10
+        brand:
+          type: string
+          example: "Toyota"
+        model:
+          type: string
+          example: "Corolla"
+        year:
+          type: integer
+          format: int64
+          example: 2017
+        engine_capacity:
+          type: integer
+          format: int64
+          description: Engine capacity in cubic centimeters.
+          example: 1600
+        engine_power:
+          type: integer
+          format: int64
+          description: Engine horse power.
+          example: 146
+        plates:
+          type: string
+          example: "ST 1222W"
+          description: Vehicle plates. Can be null.
+        expected_fuel:
+          type: number
+          format: float
+          minimum: 0
+          example: 6.5
+    NewVehicle:
+      type: object
+      properties:
+        brand:
+          type: string
+          example: "Toyota"
+        model:
+          type: string
+          example: "Corolla"
+        year:
+          type: integer
+          format: int64
+          example: 2017
+        engine_capacity:
+          type: integer
+          format: int64
+          description: Engine capacity in cubic centimeters.
+          example: 1600
+        engine_power:
+          type: integer
+          format: int64
+          description: Engine horse power.
+          example: 146
+        plates:
+          type: string
+          example: "ST 1222W"
+          description: Vehicle plates. Can be null.
+        expected_fuel:
+          type: number
+          format: float
+          minimum: 0
+          example: 6.5
+      required:
+        - brand
+        - model
+        - year
+        - engine_capacity
+        - engine_power
+        - expected_fuel
+    VehicleUpdate:
+      type: object
+      properties:
+        engine_power:
+          type: integer
+          format: int64
+          description: Engine horse power.
+          example: 146
+        plates:
+          type: string
+          example: "ST 1222W"
+          description: Vehicle plates. Can be null.
+        expected_fuel:
+          type: number
+          format: float
+          minimum: 0
+          example: 6.5
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 5
+        name:
+          type: string
+          example: "University of Silesia"
+        address:
+          type: string
+          example: "Będzińska 39"
+        city:
+          type: string
+          example: "Sosnowiec"
+        country:
+          type: string
+          example: "Poland"
+        zip_code:
+          type: string
+          example: "41-200"
+        country_code:
+          type: string
+          example: "PL"
+        contact_number:
+          type: string
+          example: "+48 32 368 90 00"
+        email:
+          type: string
+          example: "contact@us.edu.pl"
+    NewOrganization:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "University of Silesia"
+        address:
+          type: string
+          example: "Będzińska 39"
+        city:
+          type: string
+          example: "Sosnowiec"
+        country:
+          type: string
+          example: "Poland"
+        zip_code:
+          type: string
+          example: "41-200"
+        country_code:
+          type: string
+          example: "PL"
+        contact_number:
+          type: string
+          example: "+48 32 368 90 00"
+        email:
+          type: string
+          example: "contact@us.edu.pl"
+      required:
+        - name
+        - address
+        - city
+        - country
+        - zip_code
+        - country_code
+        - contact_number
+        - email
+    OrganizationUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "University of Silesia"
+        address:
+          type: string
+          example: "Będzińska 39"
+        city:
+          type: string
+          example: "Sosnowiec"
+        country:
+          type: string
+          example: "Poland"
+        zip_code:
+          type: string
+          example: "41-200"
+        country_code:
+          type: string
+          example: "PL"
+        contact_number:
+          type: string
+          example: "+48 32 368 90 00"
+        email:
+          type: string
+          example: "contact@us.edu.pl"
+    Raport:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 101
+        user_id:
+          type: integer
+          format: int64
+          example: 15
+        organization_id:
+          type: integer
+          format: int64
+          example: 5
+          description: Organization ID of the report. Can be null if the user is private.
+        vehicle_id:
+          type: integer
+          format: int64
+          example: 42
+        frame_time:
+          type: string
+          format: date-time
+          example: "2025-08-25T10:00:00Z"
+        stop_time:
+          type: string
+          format: date-time
+          example: "2025-08-25T10:45:00Z"
+        avg_fuel:
+          type: number
+          format: float
+          example: 6.5
+        max_fuel:
+          type: number
+          format: float
+          example: 8.2
+        consumed_fuel:
+          type: number
+          format: float
+          example: 3.4
+        kilometers_travelled:
+          type: number
+          format: float
+          example: 25.7
+        acceleration_style:
+          type: string
+          example: "aggressive"
+        braking_style:
+          type: string
+          example: "moderate"
+        average_speed:
+          type: number
+          format: float
+          example: 54.3
+
+    BatchData:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 10
+        vehicle_id:
+          type: integer
+          format: int64
+          example: 10
+        timestamp:
+          type: string
+          example: start
+        momentary_fuel_consump:
+          type: number
+          format: float
+          minimum: 0
+          example: 3.5
+        kilometers_travelled:
+          type: integer
+          format: int64
+          example: 45
+        speed:
+          type: number
+          format: float
+          minimum: 0
+          description: Speed in kilometers.
+          example: 65.5
+        rpms:
+          type: number
+          format: int64
+          minimum: 0
+          description: Speed in kilometers.
+          example: 1900
+    UserTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+        localId:
+          type: string
+          example: "y9AHPDr0ywBovDlqfT7R"
+      required:
+        - email
+        - password  
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+ 
