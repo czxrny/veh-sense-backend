@@ -6,9 +6,10 @@ type Organization struct {
 	Address       string `json:"address" validate:"required"`
 	City          string `json:"city" validate:"required"`
 	Country       string `json:"country" validate:"required"`
-	ZipCode       string `json:"zip_code" validate:"required"`
-	CountryCode   string `json:"country_code" validate:"required"`
-	ContactNumber string `json:"contact_number" validate:"required"`
+	ZipCode       string `json:"zip_code" validate:"required,numeric"`
+	CountryCode   string `json:"country_code" validate:"required,len=2,alpha"`
+	ContactNumber string `json:"contact_number" validate:"required,numeric"`
+	Email         string `json:"email" validate:"required,email"`
 }
 
 type OrganizationUpdate struct {
@@ -19,6 +20,7 @@ type OrganizationUpdate struct {
 	ZipCode       string `json:"zip_code"`
 	CountryCode   string `json:"country_code"`
 	ContactNumber string `json:"contact_number"`
+	Email         string `json:"email"`
 }
 
 type OrganizationFilter struct {
