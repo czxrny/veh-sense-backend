@@ -78,6 +78,22 @@ func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler 
 	json.NewEncoder(w).Encode(item)
 }
 
+// Decodes and validates the request body, invokes the inner handler but does not return the response.
+func PostHandlerSilent[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) error) {
+	var newItem T
+	if err := decodeAndValidateRequestBody(r, &newItem); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := innerHandler(r.Context(), &newItem); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
 // Decodes and validates the request body, reads the id from path, invokes the inner handler and writes the response.
 func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T, int) (*R, error)) {
 	id, err := getIdFromPath(r)

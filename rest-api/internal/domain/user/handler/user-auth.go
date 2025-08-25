@@ -28,21 +28,22 @@ func (uh *UserAuthHandler) RegisterPrivateUser(w http.ResponseWriter, r *http.Re
 }
 
 func (uh *UserAuthHandler) RegisterCorporateUser(w http.ResponseWriter, r *http.Request) {
-	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) (*models.UserTokenResponse, error) {
+	common.PostHandlerSilent(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfo) error {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "admin" {
-			return nil, fmt.Errorf("Error: to create an organization user, login as an admin and pass the JWT!")
+			return fmt.Errorf("Error: to create an organization user, login as an admin and pass the JWT!")
 		}
 
-		return uh.UserService.RegisterUser(ctx, userRegisterInfo, authClaims.OrganizationID, "user")
+		_, err := uh.UserService.RegisterUser(ctx, userRegisterInfo, authClaims.OrganizationID, "user")
+		return err
 	})
 }
 
 func (uh *UserAuthHandler) RegisterUserRoot(w http.ResponseWriter, r *http.Request) {
-	common.PostHandler(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfoRoot) (*models.UserTokenResponse, error) {
+	common.PostHandlerSilent(w, r, func(ctx context.Context, userRegisterInfo *models.UserRegisterInfoRoot) error {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok || authClaims.Role != "root" {
-			return nil, fmt.Errorf("Error: to create a custom user, login as a root and pass the JWT!")
+			return fmt.Errorf("Error: to create a custom user, login as a root and pass the JWT!")
 		}
 
 		userInfo := models.UserRegisterInfo{
@@ -51,7 +52,8 @@ func (uh *UserAuthHandler) RegisterUserRoot(w http.ResponseWriter, r *http.Reque
 			Password: userRegisterInfo.Password,
 		}
 
-		return uh.UserService.RegisterUser(ctx, &userInfo, userRegisterInfo.OrganizationID, userRegisterInfo.Role)
+		_, err := uh.UserService.RegisterUser(ctx, &userInfo, userRegisterInfo.OrganizationID, userRegisterInfo.Role)
+		return err
 	})
 }
 
