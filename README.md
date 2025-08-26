@@ -20,19 +20,31 @@ There will be couple of roles:
 
 # Current stage of the development - TODO
 
-- [ ] Query params for all GET requests
-- [ ] Decide what endpoints are really required and needed (root needs to be able to delete vehicles?)
-- [ ] Validate tokens when the owner was deleted or changed the password
-
-## Then...
-
+- [ ] Write tests for:
+    - User:
+        - [ ] Handler
+        - [ ] Service
+        - [ ] Repository
+    - Vehicle:
+        - [ ] Handler
+        - [ ] Service
+        - [ ] Repository
+    - Organization:
+        - [ ] Handler
+        - [ ] Service
+        - [ ] Repository
+    - Raport:
+        - [ ] Handler
+        - [ ] Service
+        - [ ] Repository
+- [ ] Unify errors
 - [ ] Unify the status codes
 - [ ] Develop the Raport service with sessions etc.
-- [ ] Prepare the tests of each endpoint
 
 ## And then...
 
-- [ ] Implement changing the password by email
+- [ ] Validate tokens when the owner was deleted or changed the password
 - [ ] HTTPS
 - [ ] WebSocket for the admin panel LIVE view
 - [ ] Microservices
+- [ ] Implement changing the password by email
