@@ -10,7 +10,7 @@ import (
 
 type VehicleService interface {
 	FindVehicles(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error)
-	AddVehicle(ctx context.Context, vehicle *models.Vehicle, authInfo models.AuthInfo) (*models.Vehicle, error)
+	AddVehicle(ctx context.Context, authInfo models.AuthInfo, vehicle *models.Vehicle) (*models.Vehicle, error)
 	GetById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error)
 	UpdateById(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error)
 	DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error
@@ -28,7 +28,7 @@ func (s *vehicleService) FindVehicles(ctx context.Context, filter models.Vehicle
 	return s.repo.FindAll(ctx, filter)
 }
 
-func (s *vehicleService) AddVehicle(ctx context.Context, vehicle *models.Vehicle, authInfo models.AuthInfo) (*models.Vehicle, error) {
+func (s *vehicleService) AddVehicle(ctx context.Context, authInfo models.AuthInfo, vehicle *models.Vehicle) (*models.Vehicle, error) {
 	switch authInfo.Role {
 	case "user":
 		if authInfo.OrganizationID != nil {

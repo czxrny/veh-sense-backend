@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
 	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
@@ -35,13 +35,38 @@ func (v *VehicleHandler) GetVehicles(w http.ResponseWriter, r *http.Request) {
 			return nil, apierrors.ErrBadJWT
 		}
 
+		minCapStr := query.Get("minEngineCapacity")
+		maxCapStr := query.Get("maxEngineCapacity")
+		minPowerStr := query.Get("minEnginePower")
+		maxPowerStr := query.Get("maxEnginePower")
+
+		minCap, err := strconv.Atoi(minCapStr)
+		if minCapStr != "" && err != nil {
+			return nil, apierrors.ErrBadRequest
+		}
+
+		maxCap, err := strconv.Atoi(maxCapStr)
+		if maxCapStr != "" && err != nil {
+			return nil, apierrors.ErrBadRequest
+		}
+
+		minPower, err := strconv.Atoi(minPowerStr)
+		if minPowerStr != "" && err != nil {
+			return nil, apierrors.ErrBadRequest
+		}
+
+		maxPower, err := strconv.Atoi(maxPowerStr)
+		if maxPowerStr != "" && err != nil {
+			return nil, apierrors.ErrBadRequest
+		}
+
 		filter := models.VehicleFilter{
 			Brand:          query.Get("brand"),
 			Model:          query.Get("model"),
-			MinCapacity:    query.Get("minEngineCapacity"),
-			MaxCapacity:    query.Get("maxEngineCapacity"),
-			MinEnginePower: query.Get("minEnginePower"),
-			MaxEnginePower: query.Get("maxEnginePower"),
+			MinCapacity:    minCap,
+			MaxCapacity:    maxCap,
+			MinEnginePower: minPower,
+			MaxEnginePower: maxPower,
 			Plates:         query.Get("plates"),
 			UserID:         authClaims.UserID,
 			OrganizationID: authClaims.OrganizationID,
@@ -56,10 +81,10 @@ func (v *VehicleHandler) AddVehicle(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, vehicle *models.Vehicle) (*models.Vehicle, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
-			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+			return nil, apierrors.ErrBadJWT
 		}
 
-		return v.VehicleService.AddVehicle(ctx, vehicle, authClaims)
+		return v.VehicleService.AddVehicle(ctx, authClaims, vehicle)
 	})
 }
 
@@ -68,7 +93,7 @@ func (v *VehicleHandler) GetVehicleById(w http.ResponseWriter, r *http.Request) 
 	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.Vehicle, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
-			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+			return nil, apierrors.ErrBadJWT
 		}
 
 		return v.VehicleService.GetById(ctx, authClaims, id)
@@ -79,7 +104,7 @@ func (v *VehicleHandler) UpdateVehicle(w http.ResponseWriter, r *http.Request) {
 	common.PatchHandler(w, r, func(ctx context.Context, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
-			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+			return nil, apierrors.ErrBadJWT
 		}
 
 		return v.VehicleService.UpdateById(ctx, authClaims, updatedVehicle, id)
@@ -90,7 +115,7 @@ func (v *VehicleHandler) DeleteVehicle(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
-			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+			return apierrors.ErrBadJWT
 		}
 
 		return v.VehicleService.DeleteById(ctx, authClaims, id)

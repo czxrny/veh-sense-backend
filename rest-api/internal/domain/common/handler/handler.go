@@ -12,7 +12,7 @@ import (
 // Checks if there is a request body, invokes the inner handler and writes the response.
 func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, url.Values) ([]T, error)) {
 	if !requestBodyIsEmpty(r) {
-		handleErrors(w, apierrors.ErrBadRequestBody)
+		handleErrors(w, apierrors.ErrBadRequest)
 		return
 	}
 
@@ -29,17 +29,19 @@ func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler f
 // Checks if there is a request body, reads ID from path, invokes the inner handler and writes the response.
 func GetByIdHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, int) (*T, error)) {
 	if !requestBodyIsEmpty(r) {
-		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	id, err := getIdFromPath(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	item, err := innerHandler(r.Context(), id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -50,12 +52,13 @@ func GetByIdHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler 
 // Same as GetByIdHandler - just skipping the ID part (used for the /me/* endpoints)
 func GetSimpleHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context) (*T, error)) {
 	if !requestBodyIsEmpty(r) {
-		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	item, err := innerHandler(r.Context())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -67,13 +70,13 @@ func GetSimpleHandler[T any](w http.ResponseWriter, r *http.Request, innerHandle
 func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) (*R, error)) {
 	var newItem T
 	if err := decodeAndValidateRequestBody(r, &newItem); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, apierrors.ErrBadRequest)
 		return
 	}
 
 	item, err := innerHandler(r.Context(), &newItem)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -85,12 +88,12 @@ func PostHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler 
 func PostHandlerSilent[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) error) {
 	var newItem T
 	if err := decodeAndValidateRequestBody(r, &newItem); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, apierrors.ErrBadRequest)
 		return
 	}
 
 	if err := innerHandler(r.Context(), &newItem); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -101,18 +104,19 @@ func PostHandlerSilent[T any](w http.ResponseWriter, r *http.Request, innerHandl
 func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T, int) (*R, error)) {
 	id, err := getIdFromPath(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	var updatedItem T
 	if err := decodeAndValidateRequestBody(r, &updatedItem); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, apierrors.ErrBadRequest)
 		return
 	}
 
 	item, err := innerHandler(r.Context(), &updatedItem, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -124,13 +128,13 @@ func PatchHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler
 func PatchSimpleHandler[T, R any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, *T) (*R, error)) {
 	var updatedItem T
 	if err := decodeAndValidateRequestBody(r, &updatedItem); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, apierrors.ErrBadRequest)
 		return
 	}
 
 	item, err := innerHandler(r.Context(), &updatedItem)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 
@@ -141,16 +145,18 @@ func PatchSimpleHandler[T, R any](w http.ResponseWriter, r *http.Request, innerH
 // Checks if there is a request body, reads ID from path, invokes the inner handler and writes the StatusNoContent.
 func DeleteHandler(w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, int) error) {
 	if !requestBodyIsEmpty(r) {
-		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	id, err := getIdFromPath(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		handleErrors(w, apierrors.ErrBadRequest)
+		return
 	}
 
 	if err := innerHandler(r.Context(), id); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 

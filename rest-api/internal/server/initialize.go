@@ -30,7 +30,7 @@ func initializeHandlers(app *database.App) *chi.Mux {
 	// Public endpoints
 	router.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
 	router.Post("/auth/login", userAuthHandler.LoginUser)
-	router.Patch("/me/password", userAuthHandler.UpdateLoginCredentials)
+	router.Patch("/me/credentials", userAuthHandler.UpdateLoginCredentials)
 
 	// Endpoints that require the JWT
 	router.Group(func(protectedRouter chi.Router) {
