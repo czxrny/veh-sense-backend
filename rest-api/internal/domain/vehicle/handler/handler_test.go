@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -39,68 +40,43 @@ func (m *mockVehicleService) DeleteById(ctx context.Context, authInfo models.Aut
 	return m.deleteByIdFunc(ctx, authInfo, id)
 }
 
-func TestGetAllVehiclesNoToken(t *testing.T) {
-	mockSvc := &mockVehicleService{
-		findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
-			return []models.Vehicle{}, nil
-		},
+func TestGetVehiclesHandler(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		url        string
+		authInfo   *models.AuthInfo
+		body       io.Reader
+		wantStatus int
+	}{
+		{"no token", "GET", "/vehicles", nil, nil, http.StatusUnauthorized},
+		{"ok", "GET", "/vehicles", testutils.GetAdminAuth(), nil, http.StatusOK},
+		{"with body", "GET", "/vehicles", testutils.GetAdminAuth(), strings.NewReader(`{"invalid":"data"}`), http.StatusBadRequest},
 	}
 
-	req := testutils.CreateNewRequest(http.MethodGet, "/vehicles", nil, nil)
-	w := httptest.NewRecorder()
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			mockSvc := &mockVehicleService{
+				findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
+					return []models.Vehicle{
+						{ID: 1, Brand: "BMW", Model: "X5"},
+						{ID: 2, Brand: "Audi", Model: "A4"},
+					}, nil
+				},
+			}
 
-	handler := NewVehicleHandler(mockSvc)
-	handler.GetVehicles(w, req)
+			req := testutils.CreateNewRequest(testCase.method, testCase.url, testCase.authInfo, testCase.body)
+			w := httptest.NewRecorder()
 
-	res := w.Result()
+			handler := NewVehicleHandler(mockSvc)
+			handler.GetVehicles(w, req)
 
-	if res.StatusCode != http.StatusUnauthorized {
-		t.Errorf("expected 401 OK, got %d", res.StatusCode)
-	}
-}
+			res := w.Result()
+			defer res.Body.Close()
 
-func TestGetAllVehiclesOK(t *testing.T) {
-	mockSvc := &mockVehicleService{
-		findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
-			return []models.Vehicle{
-				{ID: 1, Brand: "BMW", Model: "X5"},
-				{ID: 2, Brand: "Audi", Model: "A4"},
-			}, nil
-		},
-	}
-
-	req := testutils.CreateNewRequest(http.MethodGet, "/vehicles", testutils.GetAdminAuth(), nil)
-	w := httptest.NewRecorder()
-
-	handler := NewVehicleHandler(mockSvc)
-	handler.GetVehicles(w, req)
-
-	res := w.Result()
-
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("expected 200 OK, got %d", res.StatusCode)
-	}
-}
-
-func TestGetAllVehiclesWithBody(t *testing.T) {
-	mockSvc := &mockVehicleService{
-		findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
-			return []models.Vehicle{
-				{ID: 1, Brand: "BMW", Model: "X5"},
-				{ID: 2, Brand: "Audi", Model: "A4"},
-			}, nil
-		},
-	}
-
-	req := testutils.CreateNewRequest(http.MethodGet, "/vehicles", testutils.GetAdminAuth(), strings.NewReader(`{"invalid":"data"}`))
-	w := httptest.NewRecorder()
-
-	handler := NewVehicleHandler(mockSvc)
-	handler.GetVehicles(w, req)
-
-	res := w.Result()
-
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("expected 400 OK, got %d", res.StatusCode)
+			if res.StatusCode != testCase.wantStatus {
+				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
+			}
+		})
 	}
 }
