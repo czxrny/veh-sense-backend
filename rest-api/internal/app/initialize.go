@@ -28,7 +28,7 @@ import (
 var databaseClient *gorm.DB
 
 type App struct {
-	VehicleService      *vServ.VehicleService
+	VehicleService      vServ.VehicleService
 	OrganizationService *oServ.OrganizationService
 	RaportService       *rServ.RaportService
 	UserService         *uServ.UserService

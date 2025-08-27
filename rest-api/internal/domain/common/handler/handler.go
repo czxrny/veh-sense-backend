@@ -5,17 +5,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
 )
 
 // Checks if there is a request body, invokes the inner handler and writes the response.
 func GetAllHandler[T any](w http.ResponseWriter, r *http.Request, innerHandler func(context.Context, url.Values) ([]T, error)) {
 	if !requestBodyIsEmpty(r) {
-		http.Error(w, "Request body should be empty", http.StatusBadRequest)
+		handleErrors(w, apierrors.ErrBadRequestBody)
+		return
 	}
 
 	items, err := innerHandler(r.Context(), r.URL.Query())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		handleErrors(w, err)
 		return
 	}
 

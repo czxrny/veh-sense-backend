@@ -8,19 +8,27 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-type VehicleService struct {
+type VehicleService interface {
+	FindVehicles(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error)
+	AddVehicle(ctx context.Context, vehicle *models.Vehicle, authInfo models.AuthInfo) (*models.Vehicle, error)
+	GetById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error)
+	UpdateById(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error)
+	DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error
+}
+
+type vehicleService struct {
 	repo *r.VehicleRepository
 }
 
-func NewVehicleService(repo *r.VehicleRepository) *VehicleService {
-	return &VehicleService{repo: repo}
+func NewVehicleService(repo *r.VehicleRepository) *vehicleService {
+	return &vehicleService{repo: repo}
 }
 
-func (s *VehicleService) FindVehicles(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
+func (s *vehicleService) FindVehicles(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
 	return s.repo.FindAll(ctx, filter)
 }
 
-func (s *VehicleService) AddVehicle(ctx context.Context, vehicle *models.Vehicle, authInfo models.AuthInfo) (*models.Vehicle, error) {
+func (s *vehicleService) AddVehicle(ctx context.Context, vehicle *models.Vehicle, authInfo models.AuthInfo) (*models.Vehicle, error) {
 	switch authInfo.Role {
 	case "user":
 		if authInfo.OrganizationID != nil {
@@ -46,7 +54,7 @@ func (s *VehicleService) AddVehicle(ctx context.Context, vehicle *models.Vehicle
 	return vehicle, err
 }
 
-func (s *VehicleService) GetById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error) {
+func (s *vehicleService) GetById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error) {
 	vehicle, err := s.repo.GetByID(ctx, id)
 
 	if err != nil {
@@ -64,7 +72,7 @@ func (s *VehicleService) GetById(ctx context.Context, authInfo models.AuthInfo, 
 	return vehicle, nil
 }
 
-func (s *VehicleService) UpdateById(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
+func (s *vehicleService) UpdateById(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
 	vehicle, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -85,7 +93,7 @@ func (s *VehicleService) UpdateById(ctx context.Context, authInfo models.AuthInf
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *VehicleService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
+func (s *vehicleService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
 	vehicle, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err

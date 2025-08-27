@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
 	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
 	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
 	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
@@ -13,10 +14,10 @@ import (
 )
 
 type VehicleHandler struct {
-	*s.VehicleService
+	VehicleService s.VehicleService
 }
 
-func NewVehicleHandler(vehicleService *s.VehicleService) *VehicleHandler {
+func NewVehicleHandler(vehicleService s.VehicleService) *VehicleHandler {
 	return &VehicleHandler{
 		VehicleService: vehicleService,
 	}
@@ -31,7 +32,7 @@ func (v *VehicleHandler) GetVehicles(w http.ResponseWriter, r *http.Request) {
 	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Vehicle, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
-			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+			return nil, apierrors.ErrBadJWT
 		}
 
 		filter := models.VehicleFilter{

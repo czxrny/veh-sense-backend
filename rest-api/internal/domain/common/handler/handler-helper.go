@@ -2,14 +2,40 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
+	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
+	"github.com/czxrny/veh-sense-backend/shared/models"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator"
 )
+
+func handleErrors(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, apierrors.ErrBadJWT):
+		errorResponse(w, err.Error(), http.StatusUnauthorized)
+	case errors.Is(err, apierrors.ErrBadRequestBody):
+		errorResponse(w, err.Error(), http.StatusBadRequest)
+	default:
+		errorResponse(w, "Unexpected error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func errorResponse(response http.ResponseWriter, message string, statusCode int) {
+	errorResponse := models.APIError{
+		Code:    statusCode,
+		Message: message,
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(statusCode)
+
+	json.NewEncoder(response).Encode(errorResponse)
+}
 
 func decodeAndValidateRequestBody[T any](r *http.Request, requestBodyStruct *T) error {
 	if err := json.NewDecoder(r.Body).Decode(&requestBodyStruct); err != nil {
