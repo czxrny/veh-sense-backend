@@ -1,4 +1,4 @@
-package testutils
+package handlers
 
 import (
 	"context"
@@ -10,6 +10,16 @@ import (
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	"github.com/go-chi/chi"
 )
+
+type HttpTestStruct struct {
+	Name       string
+	Method     string
+	ID         string
+	Url        string
+	AuthInfo   *models.AuthInfo
+	Body       io.Reader
+	WantStatus int
+}
 
 func CreateNewRequest(method, url string, authInfo *models.AuthInfo, body io.Reader) *http.Request {
 	req := httptest.NewRequest(method, url, body)

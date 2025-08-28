@@ -2,13 +2,10 @@ package handler
 
 import (
 	"context"
-	"io"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/testutils"
+	testutils "github.com/czxrny/veh-sense-backend/rest-api/internal/testutils/handlers"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
@@ -40,52 +37,28 @@ func (m *mockVehicleService) DeleteById(ctx context.Context, authInfo models.Aut
 	return m.deleteByIdFunc(ctx, authInfo, id)
 }
 
+const baseUrl = "/vehicles"
+
 func TestGetVehiclesHandler(t *testing.T) {
-	const url = "/vehicles"
-
-	tests := []struct {
-		name       string
-		url        string
-		authInfo   *models.AuthInfo
-		body       io.Reader
-		wantStatus int
-	}{
-		{"no token", url, nil, nil, http.StatusUnauthorized},
-		{"ok", url, testutils.GetAdminAuth(), nil, http.StatusOK},
-		{"with body", url, testutils.GetAdminAuth(), strings.NewReader(`{"invalid":"data"}`), http.StatusBadRequest},
-		{"ok query with all params", url + "?brand=BMW&model=X5&minEngineCapacity=2000&maxEngineCapacity=3000&minEnginePower=150&maxEnginePower=400&plates=XYZ123", testutils.GetAdminAuth(), nil, http.StatusOK},
-		{"bad query params type", url + "?minEngineCapacity=abcd", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
+	mockSvc := &mockVehicleService{
+		findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
+			return []models.Vehicle{
+				{ID: 1, Brand: "BMW", Model: "X5"},
+				{ID: 2, Brand: "Audi", Model: "A4"},
+			}, nil
+		},
 	}
+	handler := NewVehicleHandler(mockSvc)
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			mockSvc := &mockVehicleService{
-				findVehiclesFunc: func(ctx context.Context, filter models.VehicleFilter) ([]models.Vehicle, error) {
-					return []models.Vehicle{
-						{ID: 1, Brand: "BMW", Model: "X5"},
-						{ID: 2, Brand: "Audi", Model: "A4"},
-					}, nil
-				},
-			}
-
-			req := testutils.CreateNewRequest(http.MethodGet, testCase.url, testCase.authInfo, testCase.body)
-			w := httptest.NewRecorder()
-
-			handler := NewVehicleHandler(mockSvc)
-			handler.GetVehicles(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			if res.StatusCode != testCase.wantStatus {
-				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
-			}
-		})
+	testutils.RunBasicGetAllTests(baseUrl, handler.GetVehicles, t)
+	customTests := []testutils.HttpTestStruct{
+		{"ok query with all params", http.MethodGet, "", baseUrl + "?brand=BMW&model=X5&minEngineCapacity=2000&maxEngineCapacity=3000&minEnginePower=150&maxEnginePower=400&plates=XYZ123", testutils.GetAdminAuth(), nil, http.StatusOK},
+		{"bad query params type", http.MethodGet, "", baseUrl + "?minEngineCapacity=abcd", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
 	}
+	testutils.RunTestCases(customTests, handler.GetVehicles, t)
 }
 
 func TestAddVehicleHandler(t *testing.T) {
-	const url = "/vehicles"
 	const vehicleRequestBodyOK = `{
     "brand": "BMW",
     "model": "X5",
@@ -104,44 +77,17 @@ func TestAddVehicleHandler(t *testing.T) {
     "expected_fuel": 10.5
 }`
 
-	tests := []struct {
-		name       string
-		authInfo   *models.AuthInfo
-		body       io.Reader
-		wantStatus int
-	}{
-		{"no token", nil, strings.NewReader(vehicleRequestBodyOK), http.StatusUnauthorized},
-		{"ok", testutils.GetAdminAuth(), strings.NewReader(vehicleRequestBodyOK), http.StatusOK},
-		{"no request body", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
-		{"bad request body", testutils.GetAdminAuth(), strings.NewReader(vehicleRequestBodyMissing), http.StatusBadRequest},
+	mockSvc := &mockVehicleService{
+		addVehicleFunc: func(ctx context.Context, authInfo models.AuthInfo, vehicle *models.Vehicle) (*models.Vehicle, error) {
+			return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
+		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			mockSvc := &mockVehicleService{
-				addVehicleFunc: func(ctx context.Context, authInfo models.AuthInfo, vehicle *models.Vehicle) (*models.Vehicle, error) {
-					return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
-				},
-			}
-
-			req := testutils.CreateNewRequest(http.MethodPost, url, testCase.authInfo, testCase.body)
-			w := httptest.NewRecorder()
-
-			handler := NewVehicleHandler(mockSvc)
-			handler.AddVehicle(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			if res.StatusCode != testCase.wantStatus {
-				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
-			}
-		})
-	}
+	handler := NewVehicleHandler(mockSvc)
+	testutils.RunBasicAddTests(baseUrl, vehicleRequestBodyOK, vehicleRequestBodyMissing, handler.AddVehicle, t)
 }
 
 func TestUpdateVehicleHandler(t *testing.T) {
-	const url = "/vehicles"
 	const vehicleUpdateRequestBodyOK = `{
     "engine_power": 400,
     "plates": "XYZ123",
@@ -152,124 +98,33 @@ func TestUpdateVehicleHandler(t *testing.T) {
     "plates": "XYZ123",
     "expected_fuel": 10.5
 }`
-
-	tests := []struct {
-		name       string
-		id         string
-		authInfo   *models.AuthInfo
-		body       io.Reader
-		wantStatus int
-	}{
-		{"no token", "1", nil, strings.NewReader(vehicleUpdateRequestBodyOK), http.StatusUnauthorized},
-		{"ok", "1", testutils.GetAdminAuth(), strings.NewReader(vehicleUpdateRequestBodyOK), http.StatusOK},
-		{"no request body", "1", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
-		{"bad request body", "1", testutils.GetAdminAuth(), strings.NewReader(vehicleUpdateRequestBodyBad), http.StatusBadRequest},
-		{"bad id in path", "invalid", testutils.GetAdminAuth(), strings.NewReader(vehicleUpdateRequestBodyOK), http.StatusBadRequest},
+	mockSvc := &mockVehicleService{
+		updateByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
+			return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
+		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			mockSvc := &mockVehicleService{
-				updateByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, updatedVehicle *models.VehicleUpdate, id int) (*models.Vehicle, error) {
-					return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
-				},
-			}
-
-			req := testutils.CreateNewRequest(http.MethodPatch, url, testCase.authInfo, testCase.body)
-			req = testutils.AddChiIdToContext(req, testCase.id)
-			w := httptest.NewRecorder()
-
-			handler := NewVehicleHandler(mockSvc)
-			handler.UpdateVehicle(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			if res.StatusCode != testCase.wantStatus {
-				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
-			}
-		})
-	}
+	handler := NewVehicleHandler(mockSvc)
+	testutils.RunBasicUpdateTests(baseUrl, vehicleUpdateRequestBodyOK, vehicleUpdateRequestBodyBad, handler.UpdateVehicle, t)
 }
 
 func TestGetVehicleByIdHandler(t *testing.T) {
-	const url = "/vehicles"
-
-	tests := []struct {
-		name       string
-		id         string
-		authInfo   *models.AuthInfo
-		body       io.Reader
-		wantStatus int
-	}{
-		{"no token", "1", nil, nil, http.StatusUnauthorized},
-		{"ok", "1", testutils.GetAdminAuth(), nil, http.StatusOK},
-		{"with body", "1", testutils.GetAdminAuth(), strings.NewReader(`{"invalid":"data"}`), http.StatusBadRequest},
-		{"bad id in path", "invalid", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
+	mockSvc := &mockVehicleService{
+		getByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error) {
+			return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
+		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			mockSvc := &mockVehicleService{
-				getByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Vehicle, error) {
-					return &models.Vehicle{ID: 1, Brand: "BMW", Model: "X5"}, nil
-				},
-			}
-
-			req := testutils.CreateNewRequest(http.MethodPatch, url, testCase.authInfo, testCase.body)
-			req = testutils.AddChiIdToContext(req, testCase.id)
-			w := httptest.NewRecorder()
-
-			handler := NewVehicleHandler(mockSvc)
-			handler.GetVehicleById(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			if res.StatusCode != testCase.wantStatus {
-				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
-			}
-		})
-	}
+	handler := NewVehicleHandler(mockSvc)
+	testutils.RunBasicGetByIdTests(baseUrl, handler.GetVehicleById, t)
 }
 
 func TestDeleteVehicleHandler(t *testing.T) {
-	const url = "/vehicles"
-
-	tests := []struct {
-		name       string
-		id         string
-		authInfo   *models.AuthInfo
-		body       io.Reader
-		wantStatus int
-	}{
-		{"no token", "1", nil, nil, http.StatusUnauthorized},
-		{"ok", "1", testutils.GetAdminAuth(), nil, http.StatusNoContent},
-		{"with body", "1", testutils.GetAdminAuth(), strings.NewReader(`{"invalid":"data"}`), http.StatusBadRequest},
-		{"bad id in path", "invalid", testutils.GetAdminAuth(), nil, http.StatusBadRequest},
+	mockSvc := &mockVehicleService{
+		deleteByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, id int) error {
+			return nil
+		},
 	}
-
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
-			mockSvc := &mockVehicleService{
-				deleteByIdFunc: func(ctx context.Context, authInfo models.AuthInfo, id int) error {
-					return nil
-				},
-			}
-
-			req := testutils.CreateNewRequest(http.MethodPatch, url, testCase.authInfo, testCase.body)
-			req = testutils.AddChiIdToContext(req, testCase.id)
-			w := httptest.NewRecorder()
-
-			handler := NewVehicleHandler(mockSvc)
-			handler.DeleteVehicle(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
-
-			if res.StatusCode != testCase.wantStatus {
-				t.Errorf("expected %d, got %d", testCase.wantStatus, res.StatusCode)
-			}
-		})
-	}
+	handler := NewVehicleHandler(mockSvc)
+	testutils.RunBasicDeleteByIdTests(baseUrl, handler.DeleteVehicle, t)
 }
