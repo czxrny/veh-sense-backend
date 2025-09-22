@@ -1,8 +1,11 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/handler"
@@ -13,10 +16,13 @@ import (
 	"github.com/go-chi/chi"
 )
 
+var AppStart = time.Now()
+
 func InitializeAndStart(app *database.App) error {
+	port := os.Getenv("PORT")
 	router := initializeHandlers(app)
-	fmt.Println("Starting the HTTP server on port 8080...")
-	return http.ListenAndServe(":8080", router)
+	fmt.Printf("Starting the HTTP server on port %s...\n", port)
+	return http.ListenAndServe(":"+port, router)
 }
 
 func initializeHandlers(app *database.App) *chi.Mux {
@@ -28,6 +34,18 @@ func initializeHandlers(app *database.App) *chi.Mux {
 
 	router := chi.NewRouter()
 	// Public endpoints
+	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Pong"))
+	})
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"Status":     "Alive!",
+			"Started at": AppStart.Format("02-01-2006 15:04:05 MST"),
+			"Uptime":     time.Since(AppStart).String(),
+		})
+	})
+
 	router.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
 	router.Post("/auth/login", userAuthHandler.LoginUser)
 	router.Patch("/me/credentials", userAuthHandler.UpdateLoginCredentials)
