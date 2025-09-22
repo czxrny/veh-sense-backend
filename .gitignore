@@ -1,4 +1,6 @@
+# Enviroment configuration
 .env
+docker-compose.override.yml
 
 # Virtual enviroment for python scripts
 venv/
