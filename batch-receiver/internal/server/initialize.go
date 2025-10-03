@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
+
+	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/handler"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -12,8 +15,8 @@ import (
 var appStart = time.Now()
 
 func InitializeAndStart() error {
-	port := "8090"
 	router := initializeHandlers()
+	port := os.Getenv("BATCH_RECEIVER_PORT")
 	fmt.Printf("Starting the HTTP BATCH Receiver server on port %s...\n", port)
 	return http.ListenAndServe(":"+port, router)
 }
@@ -32,6 +35,8 @@ func initializeHandlers() *chi.Mux {
 			"Uptime":     time.Since(appStart).String(),
 		})
 	})
+	// .With(middleware.JWTClaimsMiddleware)
+	router.Get("/batch", r.BatchCatcher)
 
 	return router
 }

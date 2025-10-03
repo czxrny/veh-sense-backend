@@ -8,5 +8,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main ./rest-api/cmd/
 
 FROM scratch
 COPY --from=builder /app/main /rest-api
-EXPOSE 8080
+ARG REST_API_PORT=8080
+ENV REST_API_PORT=${REST_API_PORT}
+
+EXPOSE ${REST_API_PORT}
 ENTRYPOINT ["/rest-api"]

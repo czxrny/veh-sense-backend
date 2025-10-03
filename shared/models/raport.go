@@ -2,6 +2,12 @@ package models
 
 import "time"
 
+type RaportFrame struct {
+	Rpm          int `json:"rpm"`
+	VehicleSpeed int `json:"vehicle_speed"`
+	EngineLoad   int `json:"engine_load"`
+}
+
 type Raport struct {
 	ID                  int       `json:"id"`
 	UserID              int       `json:"user_id"`

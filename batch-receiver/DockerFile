@@ -8,5 +8,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main ./batch-receiver/cmd/
 
 FROM scratch
 COPY --from=builder /app/main batch-receiver
-EXPOSE 8090
+ARG BATCH_RECEIVER_PORT=8090
+ENV BATCH_RECEIVER_PORT=${BATCH_RECEIVER_PORT}
+
+EXPOSE ${BATCH_RECEIVER_PORT}
 ENTRYPOINT ["/batch-receiver"]

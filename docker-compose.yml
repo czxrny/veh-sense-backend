@@ -5,10 +5,9 @@ services:
       dockerfile: rest-api/DockerFile
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - PORT=${PORT}
-      - JWT_SECRET=${JWT_SECRET}
+      - REST_API_PORT=${REST_API_PORT}
     ports:
-      - "${PORT}:${PORT}"
+      - "${REST_API_PORT}:${REST_API_PORT}"
     restart: always
   batch-receiver:
     build:
@@ -16,8 +15,7 @@ services:
       dockerfile: batch-receiver/DockerFile
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - PORT=${PORT}
-      - JWT_SECRET=${JWT_SECRET}
+      - BATCH_RECEIVER_PORT=${BATCH_RECEIVER_PORT}
     ports:
-      - "8090:8090"
+      - "${BATCH_RECEIVER_PORT}:${BATCH_RECEIVER_PORT}"
     restart: always

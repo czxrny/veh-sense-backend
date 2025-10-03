@@ -19,8 +19,8 @@ import (
 var AppStart = time.Now()
 
 func InitializeAndStart(app *database.App) error {
-	port := os.Getenv("PORT")
 	router := initializeHandlers(app)
+	port := os.Getenv("REST_API_PORT")
 	fmt.Printf("Starting the HTTP server on port %s...\n", port)
 	return http.ListenAndServe(":"+port, router)
 }
