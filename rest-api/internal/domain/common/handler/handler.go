@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
+	"github.com/czxrny/veh-sense-backend/shared/apierrors"
 )
 
 // Checks if there is a request body, invokes the inner handler and writes the response.

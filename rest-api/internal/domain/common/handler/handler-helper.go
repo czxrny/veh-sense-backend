@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/apierrors"
+	"github.com/czxrny/veh-sense-backend/shared/apierrors"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	"github.com/go-chi/chi"
 	"github.com/go-playground/validator"
