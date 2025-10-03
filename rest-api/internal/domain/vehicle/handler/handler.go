@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strconv"
 
-	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
 	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/service"
 	"github.com/czxrny/veh-sense-backend/shared/apierrors"
+	common "github.com/czxrny/veh-sense-backend/shared/handler"
 	"github.com/czxrny/veh-sense-backend/shared/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
