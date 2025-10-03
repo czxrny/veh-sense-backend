@@ -40,7 +40,7 @@ func initializeHandlers(app *database.App) *chi.Mux {
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
-			"Status":     "Alive!",
+			"Function":   "Rest Api",
 			"Started at": AppStart.Format("02-01-2006 15:04:05 MST"),
 			"Uptime":     time.Since(AppStart).String(),
 		})
