@@ -8,7 +8,7 @@ import (
 
 	common "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/common/handler"
 	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/service"
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
+	"github.com/czxrny/veh-sense-backend/shared/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 

@@ -12,7 +12,7 @@ import (
 	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/handler"
 	u "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/handler"
 	v "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/vehicle/handler"
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
+	"github.com/czxrny/veh-sense-backend/shared/middleware"
 	"github.com/go-chi/chi"
 )
 
