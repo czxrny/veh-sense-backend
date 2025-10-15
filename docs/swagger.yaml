@@ -107,6 +107,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /auth/refresh:
+     post:
+      tags:
+        - Auth / Users
+      summary: Get fresh token by passing a special key.
+      description: Pass the refresh key to get a brand new token and refresh the key in database.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTokenResponse"
+        "400":
+          description: Bad request body
+        "401":
+          description: Invalid credentials
+        "409":
+          description: Email already exist in the database
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /user/{id}:
     delete:
       tags:
@@ -349,8 +380,6 @@ paths:
           description: Invalid parameters
         "401":
           description: Validation error
-        "403":
-          description: Unauthorized to view the asset
         default:
           description: Unexpected error
           content:
@@ -812,11 +841,11 @@ components:
       type: object
       description: Information required to register a user.
       required:
-      - name
+      - user_name
       - email
       - password
       properties:
-        name:
+        user_name:
           type: string
           example: theUser
         email:
@@ -886,6 +915,19 @@ components:
           type: string
           description: New password to update (optional).
           example: "new_12345"
+    RefreshRequest:
+      type: object
+      description: Information needed for the JWT refresh.
+      required:
+      - user_id
+      - refresh_key
+      properties:
+        user_id:
+          type: string
+          example: 1
+        refresh_key:
+          type: string
+          example: sakefn0i39021rmpo2t1
     Vehicle:
       type: object
       description: >
@@ -1180,6 +1222,9 @@ components:
         token:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+        refresh_key:
+          type: string
+          example: f20jir025rh82fnionf0234324590-j-gsgwq
         localId:
           type: string
           example: "y9AHPDr0ywBovDlqfT7R"
