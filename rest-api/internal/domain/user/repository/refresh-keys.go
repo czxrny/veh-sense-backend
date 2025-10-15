@@ -22,7 +22,7 @@ func NewRefreshKeyRepository(db *gorm.DB) *RefreshKeyRepository {
 
 func (r *RefreshKeyRepository) FindByMatchingKey(ctx context.Context, key string) (*models.RefreshInfo, error) {
 	var result models.RefreshInfo
-	if err := r.db.WithContext(ctx).First(&result).Where("refresh_key = ?", key).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("refresh_key = ?", key).First(&result).Error; err != nil {
 		return nil, err
 	}
 	return &result, nil
