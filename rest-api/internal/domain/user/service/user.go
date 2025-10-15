@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/repository"
 	"github.com/czxrny/veh-sense-backend/shared/auth"
@@ -13,12 +14,13 @@ import (
 )
 
 type UserService struct {
-	repoAuth *r.UserAuthRepository
-	repoInfo *r.UserInfoRepository
+	repoAuth    *r.UserAuthRepository
+	repoInfo    *r.UserInfoRepository
+	repoRefresh *r.RefreshKeyRepository
 }
 
-func NewUserService(repoAuth *r.UserAuthRepository, repoInfo *r.UserInfoRepository) *UserService {
-	return &UserService{repoAuth: repoAuth, repoInfo: repoInfo}
+func NewUserService(repoAuth *r.UserAuthRepository, repoInfo *r.UserInfoRepository, repoRefresh *r.RefreshKeyRepository) *UserService {
+	return &UserService{repoAuth: repoAuth, repoInfo: repoInfo, repoRefresh: repoRefresh}
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, userRegisterInfo *models.UserRegisterInfo, organizationId *int, role string) (*models.UserTokenResponse, error) {
@@ -61,9 +63,21 @@ func (s *UserService) RegisterUser(ctx context.Context, userRegisterInfo *models
 		return nil, err
 	}
 
+	refreshKey, err := auth.GenerateRefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	s.repoRefresh.Add(ctx, &models.RefreshInfo{
+		UserID:     userInfo.ID,
+		RefreshKey: refreshKey,
+		ExpiresAt:  time.Now().Add(time.Hour * 24 * 30),
+	})
+
 	return &models.UserTokenResponse{
-		Token:   token,
-		LocalId: newUser.ID,
+		Token:      token,
+		RefreshKey: refreshKey,
+		LocalId:    newUser.ID,
 	}, nil
 }
 
@@ -92,9 +106,27 @@ func (s *UserService) LoginUser(ctx context.Context, userCredentials *models.Use
 		return nil, err
 	}
 
+	// delete old
+	err = s.repoRefresh.DeleteByUserID(ctx, userInfo.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshKey, err := auth.GenerateRefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	s.repoRefresh.Add(ctx, &models.RefreshInfo{
+		UserID:     userInfo.ID,
+		RefreshKey: refreshKey,
+		ExpiresAt:  time.Now().Add(time.Hour * 24 * 30),
+	})
+
 	return &models.UserTokenResponse{
-		Token:   token,
-		LocalId: userAuth.ID,
+		Token:      token,
+		RefreshKey: refreshKey,
+		LocalId:    userAuth.ID,
 	}, nil
 }
 
@@ -144,9 +176,25 @@ func (s *UserService) UpdateLoginCredentials(ctx context.Context, credUpdateRequ
 		return nil, err
 	}
 
+	if err := s.repoRefresh.DeleteByUserID(ctx, userInfo.ID); err != nil {
+		return nil, err
+	}
+
+	refreshKey, err := auth.GenerateRefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	s.repoRefresh.Add(ctx, &models.RefreshInfo{
+		UserID:     userInfo.ID,
+		RefreshKey: refreshKey,
+		ExpiresAt:  time.Now().Add(time.Hour * 24 * 30),
+	})
+
 	return &models.UserTokenResponse{
-		Token:   token,
-		LocalId: userAuth.ID,
+		Token:      token,
+		RefreshKey: refreshKey,
+		LocalId:    userAuth.ID,
 	}, nil
 }
 
@@ -180,8 +228,76 @@ func (s *UserService) DeleteUser(ctx context.Context, authInfo models.AuthInfo, 
 		return fmt.Errorf("Error: User is unauthorized to delete the user.")
 	}
 
+	if err := s.repoRefresh.DeleteByUserID(ctx, id); err != nil {
+		return err
+	}
+
 	if err := s.repoAuth.DeleteById(ctx, id); err != nil {
 		return err
 	}
+
 	return s.repoInfo.DeleteById(ctx, id)
+}
+
+func (s *UserService) GetRefreshToken(ctx context.Context, refreshRequest models.TokenRefreshRequest) (*models.UserTokenResponse, error) {
+	var refreshInfo *models.RefreshInfo
+	var err error
+
+	if refreshInfo, err = s.repoRefresh.FindByMatchingKey(ctx, refreshRequest.RefreshKey); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("Invalid key")
+		}
+		return nil, err
+	}
+
+	if refreshInfo.UserID != refreshRequest.UserID {
+		return nil, fmt.Errorf("Invalid key")
+	}
+
+	if refreshInfo.ExpiresAt.Before(time.Now()) {
+		err = s.repoRefresh.DeleteById(ctx, refreshInfo.ID)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("Key expired. Please relog to proceed.")
+	}
+
+	var newKey string
+	if newKey, err = auth.GenerateRefreshToken(); err != nil {
+		return nil, fmt.Errorf("Error while creating new key")
+	}
+
+	refreshInfo.RefreshKey = newKey
+	refreshInfo.ExpiresAt = time.Now().Add(time.Hour * 24 * 30)
+
+	if err = s.repoRefresh.Update(ctx, refreshInfo); err != nil {
+		return nil, err
+	}
+
+	var userInfo *models.UserInfo
+	if userInfo, err = s.repoInfo.GetByID(ctx, refreshInfo.UserID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("Not found!")
+		}
+		return nil, err
+	}
+
+	var userAuth *models.UserAuth
+	if userAuth, err = s.repoAuth.GetByID(ctx, refreshInfo.UserID); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("Not found!")
+		}
+		return nil, err
+	}
+
+	token, err := auth.CreateToken(userAuth, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.UserTokenResponse{
+		Token:      token,
+		RefreshKey: refreshInfo.RefreshKey,
+		LocalId:    refreshInfo.UserID,
+	}, nil
 }

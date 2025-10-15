@@ -34,8 +34,9 @@ type UserCredentialsUpdateRequest struct {
 }
 
 type UserTokenResponse struct {
-	Token   string `json:"token"`
-	LocalId int    `json:"localId"`
+	Token      string `json:"token"`
+	RefreshKey string `json:"refresh_key"`
+	LocalId    int    `json:"localId"`
 }
 
 type AuthInfo struct {

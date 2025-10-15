@@ -73,3 +73,9 @@ func (uh *UserAuthHandler) UpdateLoginCredentials(w http.ResponseWriter, r *http
 		return uh.UserService.UpdateLoginCredentials(ctx, credUpdateRequest)
 	})
 }
+
+func (uh *UserAuthHandler) RefreshByKey(w http.ResponseWriter, r *http.Request) {
+	common.PostHandler(w, r, func(ctx context.Context, request *models.TokenRefreshRequest) (*models.UserTokenResponse, error) {
+		return uh.UserService.GetRefreshToken(ctx, *request)
+	})
+}

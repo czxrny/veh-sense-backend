@@ -50,11 +50,12 @@ func NewApp() (*App, error) {
 	RaportRepo := rRepo.NewRaportRepository(databaseClient)
 	UserAuthRepository := uRepo.NewUserAuthRepository(databaseClient)
 	UserInfoRepository := uRepo.NewUserInfoRepository(databaseClient)
+	RefreshKeyRepository := uRepo.NewRefreshKeyRepository(databaseClient)
 
 	VehicleService := vServ.NewVehicleService(VehicleRepo)
 	OrganizationService := oServ.NewOrganizationService(OrganizationRepo)
 	RaportService := rServ.NewRaportService(RaportRepo)
-	UserService := uServ.NewUserService(UserAuthRepository, UserInfoRepository)
+	UserService := uServ.NewUserService(UserAuthRepository, UserInfoRepository, RefreshKeyRepository)
 
 	return &App{
 		VehicleService:      VehicleService,
@@ -78,6 +79,10 @@ func autoMigrate(databaseClient *gorm.DB) error {
 	}
 
 	if err := databaseClient.AutoMigrate(&models.UserInfo{}); err != nil {
+		return err
+	}
+
+	if err := databaseClient.AutoMigrate(&models.RefreshInfo{}); err != nil {
 		return err
 	}
 
