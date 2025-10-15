@@ -66,7 +66,7 @@ func (uh *UserAuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // Requires the user to login and pass updated information
 func (uh *UserAuthHandler) UpdateLoginCredentials(w http.ResponseWriter, r *http.Request) {
 	common.PostHandler(w, r, func(ctx context.Context, credUpdateRequest *models.UserCredentialsUpdateRequest) (*models.UserTokenResponse, error) {
-		if credUpdateRequest.NewEmail == "" || credUpdateRequest.NewPassword == "" {
+		if credUpdateRequest.NewEmail == "" && credUpdateRequest.NewPassword == "" {
 			return nil, fmt.Errorf("User should pass email or password, or both to update")
 		}
 
