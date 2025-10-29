@@ -46,10 +46,14 @@ func initializeHandlers(app *database.App) *chi.Mux {
 		})
 	})
 
-	router.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
-	router.Post("/auth/login", userAuthHandler.LoginUser)
-	router.Patch("/me/credentials", userAuthHandler.UpdateLoginCredentials)
-	router.Post("/auth/refresh", userAuthHandler.RefreshByKey)
+	router.Group(func(authRouter chi.Router) {
+		authRouter.Use(middleware.RequireAPIKeyMiddleware)
+
+		authRouter.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
+		authRouter.Post("/auth/login", userAuthHandler.LoginUser)
+		authRouter.Patch("/me/credentials", userAuthHandler.UpdateLoginCredentials)
+		authRouter.Post("/auth/refresh", userAuthHandler.RefreshByKey)
+	})
 
 	// Endpoints that require the JWT
 	router.Group(func(protectedRouter chi.Router) {

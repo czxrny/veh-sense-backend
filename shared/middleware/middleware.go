@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/czxrny/veh-sense-backend/shared/auth"
@@ -13,6 +14,26 @@ import (
 type ContextKey string
 
 const AuthKeyName ContextKey = "authClaims"
+
+func RequireAPIKeyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		fmt.Println(authHeader)
+		if !strings.HasPrefix(authHeader, "ApiKey ") {
+			http.Error(w, fmt.Errorf("Missing or malformed Authorization header").Error(), http.StatusUnauthorized)
+			return
+		}
+
+		apiKey := strings.TrimPrefix(authHeader, "ApiKey ")
+
+		if apiKey != os.Getenv("API_KEY") {
+			http.Error(w, fmt.Errorf("Invalid Key in Authorization Header").Error(), http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func JWTClaimsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
