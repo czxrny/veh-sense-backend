@@ -837,6 +837,15 @@ components:
           format: float
           example: 12
           description: Organization ID of the driver. Can be null if the driver is a private user.
+        number_of_rides:
+          type: integer
+          format: int64
+          description: The number of rides registered by the VehSense API.
+          example: 40
+        rating: 
+          type: string
+          description: Driver rating based on the rides.
+          example: Gentle
     UserRegisterInfo:
       type: object
       description: Information required to register a user.
