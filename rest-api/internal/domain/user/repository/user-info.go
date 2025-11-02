@@ -22,7 +22,7 @@ func NewUserInfoRepository(db *gorm.DB) *UserInfoRepository {
 
 func (r *UserInfoRepository) FindByOrganizationId(ctx context.Context, organizationId int) ([]models.UserInfo, error) {
 	var users []models.UserInfo
-	if err := r.db.WithContext(ctx).Find(&users).Where("organization_id = ?", organizationId).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("organization_id = ?", organizationId).Find(&users).Error; err != nil {
 		return nil, err
 	}
 
