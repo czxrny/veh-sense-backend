@@ -8,6 +8,7 @@ import (
 	"time"
 
 	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/handler"
+	"github.com/czxrny/veh-sense-backend/shared/middleware"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -35,8 +36,11 @@ func initializeHandlers() *chi.Mux {
 			"Uptime":     time.Since(appStart).String(),
 		})
 	})
-	// .With(middleware.JWTClaimsMiddleware)
-	router.Get("/batch", r.BatchCatcher)
+
+	router.Group(func(protectedRouter chi.Router) {
+		protectedRouter.Use(middleware.JWTClaimsMiddleware)
+		router.Post("/upload", r.UploadHandler)
+	})
 
 	return router
 }
