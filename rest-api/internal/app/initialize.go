@@ -34,6 +34,15 @@ type App struct {
 	UserService         *uServ.UserService
 }
 
+type repoList struct {
+	Vehicle      *vRepo.VehicleRepository
+	Organization *oRepo.OrganizationRepository
+	Raport       *rRepo.RaportRepository
+	UserAuth     *uRepo.UserAuthRepository
+	UserInfo     *uRepo.UserInfoRepository
+	RefreshKey   *uRepo.RefreshKeyRepository
+}
+
 func NewApp() (*App, error) {
 	var err error
 	databaseClient, err = gorm.Open(postgres.Open(os.Getenv("DATABASE_URL")), &gorm.Config{})
@@ -45,23 +54,13 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("migration failed: " + err.Error())
 	}
 
-	VehicleRepo := vRepo.NewVehicleRepository(databaseClient)
-	OrganizationRepo := oRepo.NewOrganizationRepository(databaseClient)
-	RaportRepo := rRepo.NewRaportRepository(databaseClient)
-	UserAuthRepository := uRepo.NewUserAuthRepository(databaseClient)
-	UserInfoRepository := uRepo.NewUserInfoRepository(databaseClient)
-	RefreshKeyRepository := uRepo.NewRefreshKeyRepository(databaseClient)
-
-	VehicleService := vServ.NewVehicleService(VehicleRepo)
-	OrganizationService := oServ.NewOrganizationService(OrganizationRepo)
-	RaportService := rServ.NewRaportService(RaportRepo)
-	UserService := uServ.NewUserService(UserAuthRepository, UserInfoRepository, RefreshKeyRepository)
+	repoList := createRepos(databaseClient)
 
 	return &App{
-		VehicleService:      VehicleService,
-		OrganizationService: OrganizationService,
-		RaportService:       RaportService,
-		UserService:         UserService,
+		VehicleService:      vServ.NewVehicleService(repoList.Vehicle),
+		OrganizationService: oServ.NewOrganizationService(repoList.Organization),
+		RaportService:       rServ.NewRaportService(repoList.Raport),
+		UserService:         uServ.NewUserService(repoList.UserAuth, repoList.UserInfo, repoList.RefreshKey),
 	}, nil
 }
 
@@ -99,4 +98,16 @@ func GetSQLClient() *sql.DB {
 		log.Fatal(err)
 	}
 	return sqlDB
+}
+
+func createRepos(databaseClient *gorm.DB) repoList {
+	return repoList{
+		Vehicle:      vRepo.NewVehicleRepository(databaseClient),
+		Organization: oRepo.NewOrganizationRepository(databaseClient),
+		Raport:       rRepo.NewRaportRepository(databaseClient),
+		UserAuth:     uRepo.NewUserAuthRepository(databaseClient),
+		UserInfo:     uRepo.NewUserInfoRepository(databaseClient),
+		RefreshKey:   uRepo.NewRefreshKeyRepository(databaseClient),
+	}
+
 }
