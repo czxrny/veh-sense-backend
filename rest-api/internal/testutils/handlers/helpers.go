@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/czxrny/veh-sense-backend/rest-api/internal/middleware"
+	"github.com/czxrny/veh-sense-backend/shared/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	"github.com/go-chi/chi"
 )
