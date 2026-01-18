@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	database "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
+	internal "github.com/czxrny/veh-sense-backend/rest-api/internal/app"
 	o "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/handler"
 	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/handler"
 	u "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/handler"
@@ -18,14 +18,14 @@ import (
 
 var AppStart = time.Now()
 
-func InitializeAndStart(app *database.App) error {
+func InitializeAndStart(app *internal.App) error {
 	router := initializeHandlers(app)
 	port := os.Getenv("REST_API_PORT")
 	fmt.Printf("Starting the HTTP server on port %s...\n", port)
 	return http.ListenAndServe(":"+port, router)
 }
 
-func initializeHandlers(app *database.App) *chi.Mux {
+func initializeHandlers(app *internal.App) *chi.Mux {
 	vehHandler := v.NewVehicleHandler(app.VehicleService)
 	orgHandler := o.NewOrganizationHandler(app.OrganizationService)
 	rapHandler := r.NewRaportHandler(app.RaportService)
