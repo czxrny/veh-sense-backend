@@ -24,10 +24,10 @@ func (r *RaportRepository) FindAll(ctx context.Context, filter models.RaportFilt
 	db := r.db.WithContext(ctx)
 
 	if filter.CreatedAfter != "" {
-		db = db.Where("frame_time >= ?", filter.CreatedAfter)
+		db = db.Where("start_time >= ?", filter.CreatedAfter)
 	}
 	if filter.CreatedBefore != "" {
-		db = db.Where("frame_time <= ?", filter.CreatedBefore)
+		db = db.Where("start_time <= ?", filter.CreatedBefore)
 	}
 
 	switch filter.Role {
