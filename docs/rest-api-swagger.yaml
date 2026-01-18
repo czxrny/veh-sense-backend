@@ -2,8 +2,8 @@ openapi: 3.0.4
 info:
   title: VehSense Backend REST API
   description: |-
-    The "VehSense Backend REST API” provides an intuitive communication with a client
-    application by provading information about the drivers, analyzing the data and providing reports.
+    The VehSense Backend REST API provides an intuitive interface for communication with client applications, 
+    enabling secure access to driver-related information, generated reports, and authentication mechanisms within the VehSense system.
   contact:
     email: czxxxrny@gmail.com
   license:
