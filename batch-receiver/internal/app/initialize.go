@@ -40,9 +40,10 @@ func NewApp() (*App, error) {
 
 	raportRepo := r.NewRaportRepository(databaseClient)
 	raportDataRepo := r.NewRaportDataRepository(databaseClient)
+	userRepo := r.NewUserInfoRepository(databaseClient)
 
 	return &App{
-		Service: *s.NewService(raportRepo, raportDataRepo),
+		Service: *s.NewService(raportRepo, raportDataRepo, userRepo),
 	}, nil
 }
 

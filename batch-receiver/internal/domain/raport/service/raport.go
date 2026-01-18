@@ -51,10 +51,11 @@ var thresholds = Thresholds{
 type Service struct {
 	raportRepo *r.RaportRepository
 	dataRepo   *r.RaportDataRepository
+	userRepo   *r.UserInfoRepository
 }
 
-func NewService(raportRepo *r.RaportRepository, dataRepo *r.RaportDataRepository) *Service {
-	return &Service{raportRepo: raportRepo, dataRepo: dataRepo}
+func NewService(raportRepo *r.RaportRepository, dataRepo *r.RaportDataRepository, userRepo *r.UserInfoRepository) *Service {
+	return &Service{raportRepo: raportRepo, dataRepo: dataRepo, userRepo: userRepo}
 }
 
 func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req model.UploadRideRequest) (*models.Raport, error) {
@@ -69,7 +70,7 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 	// sort in case the raport is not already sorted
 	sort.Slice(frames, func(i, j int) bool { return frames[i].Timestamp < frames[j].Timestamp })
 
-	report, _, err := buildReportAndEvents(frames)
+	report, events, err := buildReportAndEvents(frames)
 	if err != nil {
 		return nil, err
 	}
@@ -77,19 +78,41 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 	report.UserID = authInfo.UserID
 	report.OrganizationID = authInfo.OrganizationID
 	report.VehicleID = int(req.VehicleID)
+	report.ID = 0
 
-	// todo - save raport
+	err = s.raportRepo.Add(ctx, report)
+	if err != nil {
+		return nil, err
+	}
 
-	// eventsJSON, _ := json.Marshal(events)
-	// rawRec := &RideRawRecord{
-	// 	RaportID:   1, // should be generated
-	// 	Data:    req.Data,
-	// 	EventData: string(eventsJSON),
-	// }
+	eventData, err := gzipAndBase64(events)
+	if err != nil {
+		return nil, err
+	}
 
-	// todo - save raw data
+	dataRecord := &model.RideRecord{
+		RaportID:  report.ID,
+		Data:      req.Data,
+		EventData: eventData,
+	}
 
-	// todo - update user kms
+	err = s.dataRepo.Add(ctx, dataRecord)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo, err := s.userRepo.GetByID(ctx, authInfo.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	userInfo.NumberOfRides++
+	userInfo.TotalKilometers += int(report.KilometersTravelled)
+
+	err = s.userRepo.Update(ctx, userInfo)
+	if err != nil {
+		return nil, err
+	}
 
 	return report, nil
 }
@@ -287,4 +310,24 @@ func classifyStyle(
 	default:
 		return "calm"
 	}
+}
+
+func gzipAndBase64[T any](data []T) (string, error) {
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+
+	if _, err := gz.Write(dataJSON); err != nil {
+		return "", err
+	}
+	if err := gz.Close(); err != nil {
+		return "", err
+	}
+
+	result := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return result, nil
 }

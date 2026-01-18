@@ -11,7 +11,7 @@ type RideEvent struct {
 }
 
 type RideRecord struct {
-	RaportID int    `json:"raport_id"`
-	Data     string `json:"data"`
-	Events   string `json:"events"`
+	RaportID  int    `json:"raport_id"`
+	Data      string `json:"data"`
+	EventData string `json:"event_data"`
 }
