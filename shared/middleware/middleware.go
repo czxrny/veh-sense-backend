@@ -54,15 +54,15 @@ func JWTClaimsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func retrieveAuthClaims(claims map[string]interface{}) (*models.AuthInfo, error) {
+func retrieveAuthClaims(claims map[string]interface{}) (models.AuthInfo, error) {
 	lidFloat, ok := claims["lid"].(float64)
 	if !ok {
-		return nil, fmt.Errorf("Invalid token: lid is missing or not a number")
+		return models.AuthInfo{}, fmt.Errorf("Invalid token: lid is missing or not a number")
 	}
 
 	role, ok := claims["rol"].(string)
 	if !ok {
-		return nil, fmt.Errorf("Invalid token: rol is missing or not a string")
+		return models.AuthInfo{}, fmt.Errorf("Invalid token: rol is missing or not a string")
 	}
 
 	var orgID *int
@@ -70,13 +70,13 @@ func retrieveAuthClaims(claims map[string]interface{}) (*models.AuthInfo, error)
 	if ok {
 		orgFloat, ok := orgIDRaw.(float64)
 		if !ok {
-			return nil, fmt.Errorf("Invalid token: org is not a number")
+			return models.AuthInfo{}, fmt.Errorf("Invalid token: org is not a number")
 		}
 		temp := int(orgFloat)
 		orgID = &temp
 	}
 
-	return &models.AuthInfo{
+	return models.AuthInfo{
 		UserID:         int(lidFloat),
 		Role:           role,
 		OrganizationID: orgID,
