@@ -8,10 +8,13 @@ import (
 )
 
 func main() {
-	if err := app.NewApp(); err != nil {
+	App, err := app.NewApp()
+	if err != nil {
 		log.Fatal(err)
 	}
-	if err := server.InitializeAndStart(); err != nil {
+	defer app.GetSQLClient().Close()
+
+	if err := server.InitializeAndStart(App); err != nil {
 		log.Fatal("Couldn't start the Batch Receiver server: ", err)
 	}
 }

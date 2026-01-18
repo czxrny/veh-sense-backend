@@ -12,6 +12,7 @@ import (
 	"sort"
 	"time"
 
+	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/repository"
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
@@ -23,8 +24,6 @@ const (
 	EventHighEngineLoad  model.RideEventType = "high_engine_load"
 	EventOverspeed       model.RideEventType = "overspeed"
 )
-
-// ====== Konfiguracja progów (na start stałe) ======
 
 type Thresholds struct {
 	// Acceleration and breaking in m/s
@@ -50,10 +49,12 @@ var thresholds = Thresholds{
 }
 
 type Service struct {
+	raportRepo *r.RaportRepository
+	dataRepo   *r.RaportDataRepository
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService(raportRepo *r.RaportRepository, dataRepo *r.RaportDataRepository) *Service {
+	return &Service{raportRepo: raportRepo, dataRepo: dataRepo}
 }
 
 func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req model.UploadRideRequest) (*models.Raport, error) {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	internal "github.com/czxrny/veh-sense-backend/batch-receiver/internal/app"
 	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/handler"
 	"github.com/czxrny/veh-sense-backend/shared/middleware"
 
@@ -15,15 +16,18 @@ import (
 
 var appStart = time.Now()
 
-func InitializeAndStart() error {
-	router := initializeHandlers()
+func InitializeAndStart(app *internal.App) error {
+	router := initializeHandlers(app)
 	port := os.Getenv("BATCH_RECEIVER_PORT")
 	fmt.Printf("Starting the HTTP BATCH Receiver server on port %s...\n", port)
 	return http.ListenAndServe(":"+port, router)
 }
 
-func initializeHandlers() *chi.Mux {
+func initializeHandlers(app *internal.App) *chi.Mux {
 	router := chi.NewRouter()
+
+	uh := r.NewUploadHandler(&app.Service)
+
 	// Public endpoints
 	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Pong"))
@@ -39,7 +43,7 @@ func initializeHandlers() *chi.Mux {
 
 	router.Group(func(protectedRouter chi.Router) {
 		protectedRouter.Use(middleware.JWTClaimsMiddleware)
-		router.Post("/upload", r.UploadHandler)
+		router.Post("/upload", uh.Upload)
 	})
 
 	return router
