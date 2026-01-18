@@ -37,40 +37,16 @@ func RequireAPIKeyMiddleware(next http.Handler) http.Handler {
 
 func JWTClaimsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims, err := readHeaderAndExtractClaims(r)
+		claims, err := verifyTokenAndExtractClaims(r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		lidFloat, ok := claims["lid"].(float64)
-		if !ok {
-			http.Error(w, "Invalid token: lid is missing or not a number", http.StatusUnauthorized)
+		authClaims, err := retrieveAuthClaims(claims)
+		if err != nil {
+			http.Error(w, "Invalid token: "+err.Error(), http.StatusUnauthorized)
 			return
-		}
-
-		role, ok := claims["rol"].(string)
-		if !ok {
-			http.Error(w, "Invalid token: rol is missing or not a string", http.StatusUnauthorized)
-			return
-		}
-
-		var orgID *int
-		orgIDRaw, ok := claims["org"]
-		if ok {
-			orgFloat, ok := orgIDRaw.(float64)
-			if !ok {
-				http.Error(w, "Invalid token: org is not a number", http.StatusUnauthorized)
-				return
-			}
-			temp := int(orgFloat)
-			orgID = &temp
-		}
-
-		authClaims := models.AuthInfo{
-			UserID:         int(lidFloat),
-			Role:           role,
-			OrganizationID: orgID,
 		}
 
 		ctx := context.WithValue(r.Context(), AuthKeyName, authClaims)
@@ -78,7 +54,36 @@ func JWTClaimsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func readHeaderAndExtractClaims(r *http.Request) (map[string]interface{}, error) {
+func retrieveAuthClaims(claims map[string]interface{}) (*models.AuthInfo, error) {
+	lidFloat, ok := claims["lid"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("Invalid token: lid is missing or not a number")
+	}
+
+	role, ok := claims["rol"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Invalid token: rol is missing or not a string")
+	}
+
+	var orgID *int
+	orgIDRaw, ok := claims["org"]
+	if ok {
+		orgFloat, ok := orgIDRaw.(float64)
+		if !ok {
+			return nil, fmt.Errorf("Invalid token: org is not a number")
+		}
+		temp := int(orgFloat)
+		orgID = &temp
+	}
+
+	return &models.AuthInfo{
+		UserID:         int(lidFloat),
+		Role:           role,
+		OrganizationID: orgID,
+	}, nil
+}
+
+func verifyTokenAndExtractClaims(r *http.Request) (map[string]interface{}, error) {
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		return nil, fmt.Errorf("Missing or malformed Authorization header")
