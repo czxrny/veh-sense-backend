@@ -6,5 +6,4 @@ type UserInfo struct {
 	OrganizationId  *int   `json:"organization_id"`
 	TotalKilometers int    `json:"total_kilometers"`
 	NumberOfRides   int    `json:"number_of_rides"`
-	Rating          string `json:"rating"`
 }

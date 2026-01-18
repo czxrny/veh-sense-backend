@@ -29,9 +29,3 @@ type RaportFilter struct {
 	OrganizationID *int
 	Role           string
 }
-
-var Styles = []string{
-	"Gentle",
-	"Moderate",
-	"Aggressive",
-}

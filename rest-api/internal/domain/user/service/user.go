@@ -53,7 +53,6 @@ func (s *UserService) RegisterUser(ctx context.Context, userRegisterInfo *models
 		OrganizationId:  organizationId,
 		TotalKilometers: 0,
 		NumberOfRides:   0,
-		Rating:          models.Styles[1],
 	}
 
 	if err := s.repoInfo.Add(ctx, &userInfo); err != nil {
