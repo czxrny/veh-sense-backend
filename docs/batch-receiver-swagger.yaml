@@ -1,0 +1,57 @@
+openapi: 3.0.4
+info:
+  title: VehSense Batch Receiver
+  description: |-
+    The "VehSense Batch Receiver” to receives the ride data from VehSense client application and creates raports about the driving style of the user.
+
+  contact:
+    email: czxxxrny@gmail.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.1
+tags:
+  - name: Uploading
+    description: >
+      Upload large data for the backend to analyze and create raports
+paths:
+  /upload:
+     post:
+      tags:
+        - Uploading
+      summary: Upload the ride data.
+      description: Client application passes vehicle id + gzipped and base64 encoded ride data for the backend to create raports.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadRequest"
+        required: true
+      responses:
+        "204":
+          description: Successful operation
+        "400":
+          description: Bad request body
+        default:
+          description: Unexpected error
+components:
+  securitySchemes:
+      bearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+  schemas:
+    UploadRequest:
+      type: object
+      description: Information required to upload the ride data.
+      required:
+      - vehicle_id
+      - data
+      properties:
+        vehicle_id:
+          type: integer
+          format: int64
+          example: 32
+        data:
+          type: string
+          example: 6fganogniowe49ot34ht90tnsnkgasortnoi3qn5tnopakseng owsngiouw4toiwnmgpoweNGOIW4ntgi0wngpwgPOWIGNwopintpNMPGNGKAHN
