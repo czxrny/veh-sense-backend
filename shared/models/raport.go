@@ -13,7 +13,7 @@ type Raport struct {
 	UserID              int       `json:"user_id"`
 	OrganizationID      *int      `json:"organization_id"`
 	VehicleID           int       `json:"vehicle_id"`
-	FrameTime           time.Time `json:"frame_time"`
+	StartTime           time.Time `json:"start_time"`
 	StopTime            time.Time `json:"stop_time"`
 	AccelerationStyle   string    `json:"acceleration_style"`
 	BrakingStyle        string    `json:"braking_style"`

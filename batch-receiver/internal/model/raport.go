@@ -2,22 +2,16 @@ package model
 
 import "time"
 
-type IntermediateRaport struct {
-	UserID             int
-	OrganizationID     *int
-	VehicleID          int
-	FrameTime          time.Time
-	LastFrameTime      time.Time
-	Rpm                int
-	EngineLoad         int
-	VehicleSpeed       int
-	SpeedSum           float64
-	AggressiveBrakings int
-	EventCount         int
+type RideEventType string
+
+type RideEvent struct {
+	Timestamp time.Time     `json:"timestamp"`
+	Type      RideEventType `json:"type"`
+	Value     float64       `json:"value,omitempty"` // np. m/s^2, rpm, load, km/h
 }
 
-type UpperDeviation struct {
-	Timestamp time.Time
-	ZValue    float64
-	Load      float64
+type RideRecord struct {
+	RaportID int    `json:"raport_id"`
+	Data     string `json:"data"`
+	Events   string `json:"events"`
 }
