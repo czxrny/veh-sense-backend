@@ -8,12 +8,12 @@ import (
 
 type RaportDataRepository struct {
 	db *gorm.DB
-	*c.CommonRepository[model.RideRecord]
+	*c.CommonRepository[model.RawRideRecord]
 }
 
 func NewRaportDataRepository(db *gorm.DB) *RaportDataRepository {
 	return &RaportDataRepository{
 		db:               db,
-		CommonRepository: c.NewCommonRepository[model.RideRecord](db),
+		CommonRepository: c.NewCommonRepository[model.RawRideRecord](db),
 	}
 }

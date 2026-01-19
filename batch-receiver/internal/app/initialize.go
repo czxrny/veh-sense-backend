@@ -33,7 +33,7 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	err = databaseClient.AutoMigrate(&model.RideRecord{})
+	err = databaseClient.AutoMigrate(&model.RawRideRecord{})
 	if err != nil {
 		return nil, err
 	}

@@ -59,7 +59,12 @@ func NewService(raportRepo *r.RaportRepository, dataRepo *r.RaportDataRepository
 }
 
 func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req model.UploadRideRequest) (*models.Raport, error) {
-	frames, err := parseFrames(req.Data)
+	rawFrames, err := base64.StdEncoding.DecodeString(req.Data)
+	if err != nil {
+		return nil, fmt.Errorf("invalid base64: %w", err)
+	}
+
+	frames, err := parseFrames(rawFrames)
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +90,14 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 		return nil, err
 	}
 
-	eventData, err := gzipAndBase64(events)
+	eventData, err := toGzip(events)
 	if err != nil {
 		return nil, err
 	}
 
-	dataRecord := &model.RideRecord{
+	dataRecord := &model.RawRideRecord{
 		RaportID:  report.ID,
-		Data:      req.Data,
+		Data:      rawFrames,
 		EventData: eventData,
 	}
 
@@ -117,13 +122,8 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 	return report, nil
 }
 
-func parseFrames(data string) ([]model.ObdFrame, error) {
-	compressed, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, fmt.Errorf("invalid base64: %w", err)
-	}
-
-	gz, err := gzip.NewReader(bytes.NewReader(compressed))
+func parseFrames(data []byte) ([]model.ObdFrame, error) {
+	gz, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("invalid gzip: %w", err)
 	}
@@ -312,22 +312,21 @@ func classifyStyle(
 	}
 }
 
-func gzipAndBase64[T any](data []T) (string, error) {
+func toGzip[T any](data []T) ([]byte, error) {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 
 	if _, err := gz.Write(dataJSON); err != nil {
-		return "", err
+		return nil, err
 	}
 	if err := gz.Close(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	result := base64.StdEncoding.EncodeToString(buf.Bytes())
-	return result, nil
+	return buf.Bytes(), nil
 }
