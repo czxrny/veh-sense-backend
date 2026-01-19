@@ -43,7 +43,7 @@ func initializeHandlers(app *internal.App) *chi.Mux {
 
 	router.Group(func(protectedRouter chi.Router) {
 		protectedRouter.Use(middleware.JWTClaimsMiddleware)
-		router.Post("/upload", uh.Upload)
+		protectedRouter.Post("/upload", uh.Upload)
 	})
 
 	return router
