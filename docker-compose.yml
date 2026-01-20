@@ -18,6 +18,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - BATCH_RECEIVER_PORT=${BATCH_RECEIVER_PORT}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "${BATCH_RECEIVER_PORT}:${BATCH_RECEIVER_PORT}"
     restart: always
