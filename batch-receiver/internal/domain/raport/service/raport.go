@@ -200,7 +200,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 			if acc >= thresholds.AggressiveAccel {
 				accelAggCount++
 				events = append(events, model.RideEvent{
-					Timestamp: tsMillisToTime(currentFrame.Timestamp),
+					Timestamp: currentFrame.Timestamp,
 					Type:      EventAggressiveAccel,
 					Value:     acc,
 				})
@@ -214,7 +214,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 			if acc <= thresholds.AggressiveBrake {
 				brakeAggCount++
 				events = append(events, model.RideEvent{
-					Timestamp: tsMillisToTime(currentFrame.Timestamp),
+					Timestamp: currentFrame.Timestamp,
 					Type:      EventAggressiveBrake,
 					Value:     acc,
 				})
@@ -224,7 +224,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 		// ---- RPM ----
 		if currentFrame.Rpm >= thresholds.HighRPM {
 			events = append(events, model.RideEvent{
-				Timestamp: tsMillisToTime(currentFrame.Timestamp),
+				Timestamp: currentFrame.Timestamp,
 				Type:      EventHighRPM,
 				Value:     float64(currentFrame.Rpm),
 			})
@@ -233,7 +233,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 		// ---- ENGINE LOAD ----
 		if currentFrame.EngineLoad >= thresholds.HighEngineLoad {
 			events = append(events, model.RideEvent{
-				Timestamp: tsMillisToTime(currentFrame.Timestamp),
+				Timestamp: currentFrame.Timestamp,
 				Type:      EventHighEngineLoad,
 				Value:     float64(currentFrame.EngineLoad),
 			})
@@ -242,7 +242,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 		// ---- OVERSPEED ----
 		if thresholds.OverspeedKmh > 0 && currentFrame.VehicleSpeed >= thresholds.OverspeedKmh {
 			events = append(events, model.RideEvent{
-				Timestamp: tsMillisToTime(currentFrame.Timestamp),
+				Timestamp: currentFrame.Timestamp,
 				Type:      EventOverspeed,
 				Value:     float64(currentFrame.VehicleSpeed),
 			})
@@ -279,8 +279,6 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 
 	return report, events, nil
 }
-
-// ====== Helpery ======
 
 func tsMillisToTime(ms int64) time.Time {
 	return time.Unix(0, ms*int64(time.Millisecond))
