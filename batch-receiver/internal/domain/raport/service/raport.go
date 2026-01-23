@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"time"
 
 	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/repository"
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
@@ -142,9 +141,9 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 		return nil, nil, errors.New("not enough frames")
 	}
 
-	start := tsMillisToTime(frames[0].Timestamp)
-	end := tsMillisToTime(frames[len(frames)-1].Timestamp)
-	if !end.After(start) {
+	start := frames[0].Timestamp
+	end := frames[len(frames)-1].Timestamp
+	if end <= start {
 		return nil, nil, errors.New("invalid timestamps (end <= start)")
 	}
 
@@ -268,8 +267,8 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 	)
 
 	report := &models.Raport{
-		StartTime:           start,
-		StopTime:            end,
+		StartTime:           frames[0].Timestamp,
+		StopTime:            frames[0].Timestamp,
 		AccelerationStyle:   accStyle,
 		BrakingStyle:        brkStyle,
 		AverageSpeed:        avgSpeed,
@@ -278,10 +277,6 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 	}
 
 	return report, events, nil
-}
-
-func tsMillisToTime(ms int64) time.Time {
-	return time.Unix(0, ms*int64(time.Millisecond))
 }
 
 func kmhToMS(kmh float64) float64 { return kmh / 3.6 }
