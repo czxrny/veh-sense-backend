@@ -1,12 +1,12 @@
 package models
 
-type RaportFrame struct {
+type ReportFrame struct {
 	Rpm          int `json:"rpm"`
 	VehicleSpeed int `json:"vehicle_speed"`
 	EngineLoad   int `json:"engine_load"`
 }
 
-type Raport struct {
+type Report struct {
 	ID                  int     `json:"id"`
 	UserID              int     `json:"user_id"`
 	OrganizationID      *int    `json:"organization_id"`
@@ -20,7 +20,7 @@ type Raport struct {
 	KilometersTravelled float64 `json:"kilometers_travelled"`
 }
 
-type RaportFilter struct {
+type ReportFilter struct {
 	CreatedAfter   string
 	CreatedBefore  string
 	UserID         int

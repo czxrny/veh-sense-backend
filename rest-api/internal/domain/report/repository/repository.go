@@ -8,19 +8,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type RaportRepository struct {
+type ReportRepository struct {
 	db *gorm.DB
-	*c.CommonRepository[models.Raport]
+	*c.CommonRepository[models.Report]
 }
 
-func NewRaportRepository(db *gorm.DB) *RaportRepository {
-	return &RaportRepository{
+func NewReportRepository(db *gorm.DB) *ReportRepository {
+	return &ReportRepository{
 		db:               db,
-		CommonRepository: c.NewCommonRepository[models.Raport](db),
+		CommonRepository: c.NewCommonRepository[models.Report](db),
 	}
 }
 
-func (r *RaportRepository) FindAll(ctx context.Context, filter models.RaportFilter) ([]models.Raport, error) {
+func (r *ReportRepository) FindAll(ctx context.Context, filter models.ReportFilter) ([]models.Report, error) {
 	db := r.db.WithContext(ctx)
 
 	if filter.CreatedAfter != "" {
@@ -37,9 +37,9 @@ func (r *RaportRepository) FindAll(ctx context.Context, filter models.RaportFilt
 		db = db.Where("ogranization_id = ?", filter.OrganizationID)
 	}
 
-	var raports []models.Raport
-	if err := db.Find(&raports).Error; err != nil {
+	var Reports []models.Report
+	if err := db.Find(&Reports).Error; err != nil {
 		return nil, err
 	}
-	return raports, nil
+	return Reports, nil
 }

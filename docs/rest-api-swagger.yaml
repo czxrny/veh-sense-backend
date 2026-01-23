@@ -21,7 +21,7 @@ tags:
       Endpoints for managing vehicles.
       Includes listing, creating, updating, and deleting vehicle records associated with the user.
 
-  - name: Raports
+  - name: Reports
     description: >
       Endpoints for handling reports.
       Includes retrieving, listing, and deleting driving reports and performance data of vehicles.
@@ -498,12 +498,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /raport:
+  /report:
     get:
       tags:
-        - Raports
-      summary: Get raports by the query parameters.
-      description: Get all the raport that match the criteria. Used only by the owner of the raports, or the admin of the organization. Requires the JWT token. 
+        - Reports
+      summary: Get reports by the query parameters.
+      description: Get all the report that match the criteria. Used only by the owner of the reports, or the admin of the organization. Requires the JWT token. 
       security:
               - bearerAuth: []
       parameters:
@@ -545,24 +545,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /raport/{id}:
+  /report/{id}:
     delete:
       tags:
-        - Raports
-      summary: Delete a raport.
-      description: Deletes a raport vehicle by its ID. Requires a JWT Token an organization admin / owner of the raport.
+        - Reports
+      summary: Delete a report.
+      description: Deletes a report vehicle by its ID. Requires a JWT Token an organization admin / owner of the report.
       security:
       - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: The ID of the raport to delete.
+          description: The ID of the report to delete.
           schema:
             type: string
       responses:
         "204":
-          description: Raport successfully deleted (no content)
+          description: Report successfully deleted (no content)
         "400":
           description: Invalid parameters 
         "401":
@@ -570,7 +570,7 @@ paths:
         "403":
           description: Unauthorized to edit the asset
         "404":
-          description: Raport not found
+          description: Report not found
         default:
           description: Unexpected error
           content:
@@ -1135,7 +1135,7 @@ components:
         email:
           type: string
           example: "contact@us.edu.pl"
-    Raport:
+    Report:
       type: object
       properties:
         id:

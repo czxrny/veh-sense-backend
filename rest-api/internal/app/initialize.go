@@ -14,8 +14,8 @@ import (
 	oRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/repository"
 	oServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/organization/service"
 
-	rRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/repository"
-	rServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/service"
+	rRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/report/repository"
+	rServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/report/service"
 
 	uRepo "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/repository"
 	uServ "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/user/service"
@@ -30,14 +30,14 @@ var databaseClient *gorm.DB
 type App struct {
 	VehicleService      vServ.VehicleService
 	OrganizationService *oServ.OrganizationService
-	RaportService       *rServ.RaportService
+	ReportService       *rServ.ReportService
 	UserService         *uServ.UserService
 }
 
 type repoList struct {
 	Vehicle      *vRepo.VehicleRepository
 	Organization *oRepo.OrganizationRepository
-	Raport       *rRepo.RaportRepository
+	Report       *rRepo.ReportRepository
 	UserAuth     *uRepo.UserAuthRepository
 	UserInfo     *uRepo.UserInfoRepository
 	RefreshKey   *uRepo.RefreshKeyRepository
@@ -59,7 +59,7 @@ func NewApp() (*App, error) {
 	return &App{
 		VehicleService:      vServ.NewVehicleService(repoList.Vehicle),
 		OrganizationService: oServ.NewOrganizationService(repoList.Organization),
-		RaportService:       rServ.NewRaportService(repoList.Raport),
+		ReportService:       rServ.NewReportService(repoList.Report),
 		UserService:         uServ.NewUserService(repoList.UserAuth, repoList.UserInfo, repoList.RefreshKey),
 	}, nil
 }
@@ -85,7 +85,7 @@ func autoMigrate(databaseClient *gorm.DB) error {
 		return err
 	}
 
-	return databaseClient.AutoMigrate(&models.Raport{})
+	return databaseClient.AutoMigrate(&models.Report{})
 }
 
 func GetDatabaseClient() *gorm.DB {
@@ -104,7 +104,7 @@ func createRepos(databaseClient *gorm.DB) repoList {
 	return repoList{
 		Vehicle:      vRepo.NewVehicleRepository(databaseClient),
 		Organization: oRepo.NewOrganizationRepository(databaseClient),
-		Raport:       rRepo.NewRaportRepository(databaseClient),
+		Report:       rRepo.NewReportRepository(databaseClient),
 		UserAuth:     uRepo.NewUserAuthRepository(databaseClient),
 		UserInfo:     uRepo.NewUserInfoRepository(databaseClient),
 		RefreshKey:   uRepo.NewRefreshKeyRepository(databaseClient),

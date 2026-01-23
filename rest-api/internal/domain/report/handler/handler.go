@@ -6,30 +6,30 @@ import (
 	"net/http"
 	"net/url"
 
-	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/raport/service"
+	s "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/report/service"
 	common "github.com/czxrny/veh-sense-backend/shared/handler"
 	"github.com/czxrny/veh-sense-backend/shared/middleware"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
 
-type RaportHandler struct {
-	*s.RaportService
+type ReportHandler struct {
+	*s.ReportService
 }
 
-func NewRaportHandler(raportService *s.RaportService) *RaportHandler {
-	return &RaportHandler{
-		RaportService: raportService,
+func NewReportHandler(ReportService *s.ReportService) *ReportHandler {
+	return &ReportHandler{
+		ReportService: ReportService,
 	}
 }
 
-func (rh *RaportHandler) GetRaports(w http.ResponseWriter, r *http.Request) {
-	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Raport, error) {
+func (rh *ReportHandler) GetReports(w http.ResponseWriter, r *http.Request) {
+	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Report, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
 
-		filter := &models.RaportFilter{
+		filter := &models.ReportFilter{
 			CreatedAfter:   query.Get("createdAfter"),
 			CreatedBefore:  query.Get("createdBefore"),
 			UserID:         authClaims.UserID,
@@ -37,17 +37,17 @@ func (rh *RaportHandler) GetRaports(w http.ResponseWriter, r *http.Request) {
 			Role:           authClaims.Role,
 		}
 
-		return rh.RaportService.FindAllReports(ctx, *filter)
+		return rh.ReportService.FindAllReports(ctx, *filter)
 	})
 }
 
-func (rh *RaportHandler) DeleteRaport(w http.ResponseWriter, r *http.Request) {
+func (rh *ReportHandler) DeleteReport(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
 
-		return rh.RaportService.DeleteById(ctx, authClaims, id)
+		return rh.ReportService.DeleteById(ctx, authClaims, id)
 	})
 }
