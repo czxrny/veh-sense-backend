@@ -11,7 +11,7 @@ import (
 	"math"
 	"sort"
 
-	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/repository"
+	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/repository"
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 )
@@ -48,16 +48,16 @@ var thresholds = Thresholds{
 }
 
 type Service struct {
-	raportRepo *r.RaportRepository
-	dataRepo   *r.RaportDataRepository
+	reportRepo *r.ReportRepository
+	dataRepo   *r.ReportDataRepository
 	userRepo   *r.UserInfoRepository
 }
 
-func NewService(raportRepo *r.RaportRepository, dataRepo *r.RaportDataRepository, userRepo *r.UserInfoRepository) *Service {
-	return &Service{raportRepo: raportRepo, dataRepo: dataRepo, userRepo: userRepo}
+func NewService(reportRepo *r.ReportRepository, dataRepo *r.ReportDataRepository, userRepo *r.UserInfoRepository) *Service {
+	return &Service{reportRepo: reportRepo, dataRepo: dataRepo, userRepo: userRepo}
 }
 
-func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req model.UploadRideRequest) (*models.Raport, error) {
+func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req model.UploadRideRequest) (*models.Report, error) {
 	rawFrames, err := base64.StdEncoding.DecodeString(req.Data)
 	if err != nil {
 		return nil, fmt.Errorf("invalid base64: %w", err)
@@ -71,7 +71,7 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 		return nil, errors.New("not enough frames to create report")
 	}
 
-	// sort in case the raport is not already sorted
+	// sort in case the report is not already sorted
 	sort.Slice(frames, func(i, j int) bool { return frames[i].Timestamp < frames[j].Timestamp })
 
 	report, events, err := buildReportAndEvents(frames)
@@ -84,7 +84,7 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 	report.VehicleID = int(req.VehicleID)
 	report.ID = 0
 
-	err = s.raportRepo.Add(ctx, report)
+	err = s.reportRepo.Add(ctx, report)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 	}
 
 	dataRecord := &model.RawRideRecord{
-		RaportID:  report.ID,
+		ReportID:  report.ID,
 		Data:      rawFrames,
 		EventData: eventData,
 	}
@@ -136,7 +136,7 @@ func parseFrames(data []byte) ([]model.ObdFrame, error) {
 	return frames, nil
 }
 
-func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.RideEvent, error) {
+func buildReportAndEvents(frames []model.ObdFrame) (*models.Report, []model.RideEvent, error) {
 	if len(frames) < 2 {
 		return nil, nil, errors.New("not enough frames")
 	}
@@ -266,7 +266,7 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Raport, []model.Ride
 		math.Abs(thresholds.AggressiveBrake),
 	)
 
-	report := &models.Raport{
+	report := &models.Report{
 		StartTime:           frames[0].Timestamp,
 		StopTime:            frames[0].Timestamp,
 		AccelerationStyle:   accStyle,

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	s "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/service"
+	s "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/service"
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
 	common "github.com/czxrny/veh-sense-backend/shared/handler"
 	"github.com/czxrny/veh-sense-backend/shared/middleware"

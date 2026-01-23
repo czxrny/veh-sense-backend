@@ -9,13 +9,13 @@ type RideEvent struct {
 }
 
 type RideRecord struct {
-	RaportID  int    `json:"raport_id"`
+	ReportID  int    `json:"report_id"`
 	Data      string `json:"data"`
 	EventData string `json:"event_data"`
 }
 
 type RawRideRecord struct {
-	RaportID  int
+	ReportID  int
 	Data      []byte
 	EventData []byte
 }

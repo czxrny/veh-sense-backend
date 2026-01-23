@@ -8,7 +8,7 @@ import (
 	"time"
 
 	internal "github.com/czxrny/veh-sense-backend/batch-receiver/internal/app"
-	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/handler"
+	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/handler"
 	"github.com/czxrny/veh-sense-backend/shared/middleware"
 
 	"github.com/go-chi/chi/v5"

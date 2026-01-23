@@ -6,14 +6,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type RaportRepository struct {
+type ReportRepository struct {
 	db *gorm.DB
-	*c.CommonRepository[models.Raport]
+	*c.CommonRepository[models.Report]
 }
 
-func NewRaportRepository(db *gorm.DB) *RaportRepository {
-	return &RaportRepository{
+func NewReportRepository(db *gorm.DB) *ReportRepository {
+	return &ReportRepository{
 		db:               db,
-		CommonRepository: c.NewCommonRepository[models.Raport](db),
+		CommonRepository: c.NewCommonRepository[models.Report](db),
 	}
 }

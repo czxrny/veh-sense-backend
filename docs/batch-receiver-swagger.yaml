@@ -2,7 +2,7 @@ openapi: 3.0.4
 info:
   title: VehSense Batch Receiver
   description: |-
-    The "VehSense Batch Receiver” to receives the ride data from VehSense client application and creates raports about the driving style of the user.
+    The "VehSense Batch Receiver” to receives the ride data from VehSense client application and creates reports about the driving style of the user.
 
   contact:
     email: czxxxrny@gmail.com
@@ -13,14 +13,14 @@ info:
 tags:
   - name: Uploading
     description: >
-      Upload large data for the backend to analyze and create raports
+      Upload large data for the backend to analyze and create reports
 paths:
   /upload:
      post:
       tags:
         - Uploading
       summary: Upload the ride data.
-      description: Client application passes vehicle id + gzipped and base64 encoded ride data for the backend to create raports.
+      description: Client application passes vehicle id + gzipped and base64 encoded ride data for the backend to create reports.
       requestBody:
         content:
           application/json:

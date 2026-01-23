@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	r "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/repository"
-	s "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/raport/service"
+	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/repository"
+	s "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/service"
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	_ "github.com/lib/pq"
@@ -27,8 +27,8 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	// just to be sure raport exists - if rest api did not run auto migrate
-	err = databaseClient.AutoMigrate(&models.Raport{})
+	// just to be sure report exists - if rest api did not run auto migrate
+	err = databaseClient.AutoMigrate(&models.Report{})
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +38,12 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	raportRepo := r.NewRaportRepository(databaseClient)
-	raportDataRepo := r.NewRaportDataRepository(databaseClient)
-	userRepo := r.NewUserInfoRepository(databaseClient)
+	reportDataRepo := repository.NewReportDataRepository(databaseClient)
+	reportRepo := repository.NewReportRepository(databaseClient)
+	userRepo := repository.NewUserInfoRepository(databaseClient)
 
 	return &App{
-		Service: *s.NewService(raportRepo, raportDataRepo, userRepo),
+		Service: *s.NewService(reportRepo, reportDataRepo, userRepo),
 	}, nil
 }
 
