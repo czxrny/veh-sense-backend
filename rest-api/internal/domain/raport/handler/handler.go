@@ -24,7 +24,7 @@ func NewRaportHandler(raportService *s.RaportService) *RaportHandler {
 
 func (rh *RaportHandler) GetRaports(w http.ResponseWriter, r *http.Request) {
 	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.Raport, error) {
-		authClaims, ok := ctx.Value("authClaims").(models.AuthInfo)
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
 		if !ok {
 			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
 		}
