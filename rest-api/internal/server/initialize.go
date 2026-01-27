@@ -66,6 +66,7 @@ func initializeHandlers(app *internal.App) *chi.Mux {
 		protectedRouter.Delete("/vehicles/{id}", vehHandler.DeleteVehicle)
 
 		protectedRouter.Get("/reports", rapHandler.GetReports)
+		protectedRouter.Get("/reports/{id}/data", rapHandler.GetReports)
 		protectedRouter.Delete("/reports/{id}", rapHandler.DeleteReport)
 
 		protectedRouter.Get("/me", userInfoHandler.GetMyUserInfo)

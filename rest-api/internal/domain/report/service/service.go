@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	r "github.com/czxrny/veh-sense-backend/rest-api/internal/domain/report/repository"
@@ -9,19 +10,20 @@ import (
 )
 
 type ReportService struct {
-	repo *r.ReportRepository
+	raportRepo *r.ReportRepository
+	recordRepo *r.ReportDataRepository
 }
 
-func NewReportService(repo *r.ReportRepository) *ReportService {
-	return &ReportService{repo: repo}
+func NewReportService(repo *r.ReportRepository, recordRepo *r.ReportDataRepository) *ReportService {
+	return &ReportService{raportRepo: repo, recordRepo: recordRepo}
 }
 
 func (s *ReportService) FindAllReports(ctx context.Context, filter models.ReportFilter) ([]models.Report, error) {
-	return s.repo.FindAll(ctx, filter)
+	return s.raportRepo.FindAll(ctx, filter)
 }
 
 func (s *ReportService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
-	Report, err := s.repo.GetByID(ctx, id)
+	Report, err := s.raportRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -33,5 +35,30 @@ func (s *ReportService) DeleteById(ctx context.Context, authInfo models.AuthInfo
 		return fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
 	}
 
-	return s.repo.DeleteById(ctx, id)
+	return s.raportRepo.DeleteById(ctx, id)
+}
+
+func (s *ReportService) GetRideData(ctx context.Context, authInfo models.AuthInfo, id int) (*models.RideRecord, error) {
+	report, err := s.raportRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("Internal error while fetching data from db" + err.Error())
+	}
+
+	isOwner := report.UserID == authInfo.UserID
+	isOrgAdmin := report.OrganizationID != nil && authInfo.OrganizationID != nil && *report.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
+
+	if !isOwner && !isOrgAdmin {
+		return nil, fmt.Errorf("Error: User is unauthorized to access the data.")
+	}
+
+	raw, err := s.recordRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("Internal error while fetching data from db" + err.Error())
+	}
+
+	return &models.RideRecord{
+		ReportID:  raw.ReportID,
+		Data:      base64.StdEncoding.EncodeToString(raw.Data),
+		EventData: base64.StdEncoding.EncodeToString(raw.EventData),
+	}, nil
 }

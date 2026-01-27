@@ -38,6 +38,7 @@ type repoList struct {
 	Vehicle      *vRepo.VehicleRepository
 	Organization *oRepo.OrganizationRepository
 	Report       *rRepo.ReportRepository
+	ReportData   *rRepo.ReportDataRepository
 	UserAuth     *uRepo.UserAuthRepository
 	UserInfo     *uRepo.UserInfoRepository
 	RefreshKey   *uRepo.RefreshKeyRepository
@@ -59,7 +60,7 @@ func NewApp() (*App, error) {
 	return &App{
 		VehicleService:      vServ.NewVehicleService(repoList.Vehicle),
 		OrganizationService: oServ.NewOrganizationService(repoList.Organization),
-		ReportService:       rServ.NewReportService(repoList.Report),
+		ReportService:       rServ.NewReportService(repoList.Report, repoList.ReportData),
 		UserService:         uServ.NewUserService(repoList.UserAuth, repoList.UserInfo, repoList.RefreshKey),
 	}, nil
 }
@@ -105,6 +106,7 @@ func createRepos(databaseClient *gorm.DB) repoList {
 		Vehicle:      vRepo.NewVehicleRepository(databaseClient),
 		Organization: oRepo.NewOrganizationRepository(databaseClient),
 		Report:       rRepo.NewReportRepository(databaseClient),
+		ReportData:   rRepo.NewReportDataRepository(databaseClient),
 		UserAuth:     uRepo.NewUserAuthRepository(databaseClient),
 		UserInfo:     uRepo.NewUserInfoRepository(databaseClient),
 		RefreshKey:   uRepo.NewRefreshKeyRepository(databaseClient),
