@@ -7,7 +7,6 @@ import (
 
 	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/repository"
 	s "github.com/czxrny/veh-sense-backend/batch-receiver/internal/domain/upload/service"
-	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
 	"github.com/czxrny/veh-sense-backend/shared/models"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -33,7 +32,7 @@ func NewApp() (*App, error) {
 		return nil, err
 	}
 
-	err = databaseClient.AutoMigrate(&model.RawRideRecord{})
+	err = databaseClient.AutoMigrate(&models.RawRideRecord{})
 	if err != nil {
 		return nil, err
 	}

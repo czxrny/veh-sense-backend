@@ -94,7 +94,7 @@ func (s *Service) UploadRide(ctx context.Context, authInfo models.AuthInfo, req 
 		return nil, err
 	}
 
-	dataRecord := &model.RawRideRecord{
+	dataRecord := &models.RawRideRecord{
 		ReportID:  report.ID,
 		Data:      rawFrames,
 		EventData: eventData,

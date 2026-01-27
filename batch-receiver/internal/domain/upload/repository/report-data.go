@@ -1,19 +1,19 @@
 package repository
 
 import (
-	"github.com/czxrny/veh-sense-backend/batch-receiver/internal/model"
+	"github.com/czxrny/veh-sense-backend/shared/models"
 	c "github.com/czxrny/veh-sense-backend/shared/repository"
 	"gorm.io/gorm"
 )
 
 type ReportDataRepository struct {
 	db *gorm.DB
-	*c.CommonRepository[model.RawRideRecord]
+	*c.CommonRepository[models.RawRideRecord]
 }
 
 func NewReportDataRepository(db *gorm.DB) *ReportDataRepository {
 	return &ReportDataRepository{
 		db:               db,
-		CommonRepository: c.NewCommonRepository[model.RawRideRecord](db),
+		CommonRepository: c.NewCommonRepository[models.RawRideRecord](db),
 	}
 }
