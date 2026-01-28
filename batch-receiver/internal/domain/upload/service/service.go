@@ -267,8 +267,8 @@ func buildReportAndEvents(frames []model.ObdFrame) (*models.Report, []model.Ride
 	)
 
 	report := &models.Report{
-		StartTime:           frames[0].Timestamp,
-		StopTime:            frames[0].Timestamp,
+		StartTime:           start,
+		StopTime:            end,
 		AccelerationStyle:   accStyle,
 		BrakingStyle:        brkStyle,
 		AverageSpeed:        avgSpeed,
