@@ -34,7 +34,7 @@ func (r *ReportRepository) FindAll(ctx context.Context, filter models.ReportFilt
 	case "user":
 		db = db.Where("user_id = ?", filter.UserID)
 	case "admin":
-		db = db.Where("ogranization_id = ?", filter.OrganizationID)
+		db = db.Where("organization_id = ?", filter.OrganizationID)
 	}
 
 	var Reports []models.Report
