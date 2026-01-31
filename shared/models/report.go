@@ -31,7 +31,7 @@ type ReportFilter struct {
 // Replacing user id with user name
 type AdminReport struct {
 	ID                  int     `json:"id"`
-	Username            int     `json:"user_name"`
+	UserName            string  `json:"user_name"`
 	UserID              int     `json:"user_id"`
 	VehicleID           int     `json:"vehicle_id"`
 	StartTime           int64   `json:"start_time"`
