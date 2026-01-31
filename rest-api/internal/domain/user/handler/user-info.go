@@ -45,6 +45,17 @@ func (uh *UserInfoHandler) GetMyUserInfo(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+func (uh *UserInfoHandler) GetUserInfoById(w http.ResponseWriter, r *http.Request) {
+	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.UserInfo, error) {
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
+		if !ok {
+			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+		}
+
+		return uh.UserService.GetUserInfoById(ctx, authClaims, id)
+	})
+}
+
 // Must be either owner, admin of the user org
 func (uh *UserInfoHandler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	common.DeleteHandler(w, r, func(ctx context.Context, id int) error {

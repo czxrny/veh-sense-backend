@@ -211,6 +211,22 @@ func (s *UserService) GetMyUserInfo(ctx context.Context, authInfo models.AuthInf
 	return s.repoInfo.GetByID(ctx, authInfo.UserID)
 }
 
+func (s *UserService) GetUserInfoById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.UserInfo, error) {
+	userInfo, err := s.repoInfo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	isOwner := id == authInfo.UserID
+	isOrgAdmin := authInfo.OrganizationID != nil && userInfo.OrganizationId != nil && *userInfo.OrganizationId == *authInfo.OrganizationID && authInfo.Role == "admin"
+
+	if !isOwner && !isOrgAdmin && authInfo.Role != "root" {
+		return nil, fmt.Errorf("Error: User is unauthorized to get user's info.")
+	}
+
+	return userInfo, nil
+}
+
 func (s *UserService) DeleteUser(ctx context.Context, authInfo models.AuthInfo, id int) error {
 	var userInfo *models.UserInfo
 	var err error
