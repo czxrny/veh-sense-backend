@@ -60,6 +60,17 @@ func (rh *ReportHandler) GetReportsAdmin(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+func (rh *ReportHandler) GetReportById(w http.ResponseWriter, r *http.Request) {
+	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.Report, error) {
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
+		if !ok {
+			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+		}
+
+		return rh.ReportService.FindById(ctx, authClaims, id)
+	})
+}
+
 func (rh *ReportHandler) GetReportDataById(w http.ResponseWriter, r *http.Request) {
 	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.RideRecord, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)

@@ -10,24 +10,39 @@ import (
 )
 
 type ReportService struct {
-	raportRepo *r.ReportRepository
+	reportRepo *r.ReportRepository
 	recordRepo *r.ReportDataRepository
 }
 
 func NewReportService(repo *r.ReportRepository, recordRepo *r.ReportDataRepository) *ReportService {
-	return &ReportService{raportRepo: repo, recordRepo: recordRepo}
+	return &ReportService{reportRepo: repo, recordRepo: recordRepo}
 }
 
 func (s *ReportService) FindAllReports(ctx context.Context, filter models.ReportFilter) ([]models.Report, error) {
-	return s.raportRepo.FindAll(ctx, filter)
+	return s.reportRepo.FindAll(ctx, filter)
 }
 
 func (s *ReportService) FindAllReportsOrganization(ctx context.Context, filter models.ReportFilter) ([]models.AdminReport, error) {
-	return s.raportRepo.FindAllAdmin(ctx, filter)
+	return s.reportRepo.FindAllAdmin(ctx, filter)
+}
+
+func (s *ReportService) FindById(ctx context.Context, authInfo models.AuthInfo, id int) (*models.Report, error) {
+	report, err := s.reportRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	isOwner := report.UserID == authInfo.UserID
+	isOrgAdmin := report.OrganizationID != nil && authInfo.OrganizationID != nil && *report.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
+
+	if !isOwner && !isOrgAdmin {
+		return nil, fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
+	}
+
+	return report, nil
 }
 
 func (s *ReportService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
-	Report, err := s.raportRepo.GetByID(ctx, id)
+	Report, err := s.reportRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -39,11 +54,11 @@ func (s *ReportService) DeleteById(ctx context.Context, authInfo models.AuthInfo
 		return fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
 	}
 
-	return s.raportRepo.DeleteById(ctx, id)
+	return s.reportRepo.DeleteById(ctx, id)
 }
 
 func (s *ReportService) GetRideData(ctx context.Context, authInfo models.AuthInfo, id int) (*models.RideRecord, error) {
-	report, err := s.raportRepo.GetByID(ctx, id)
+	report, err := s.reportRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("Internal error while fetching data from db" + err.Error())
 	}
