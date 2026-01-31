@@ -41,6 +41,25 @@ func (rh *ReportHandler) GetReports(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (rh *ReportHandler) GetReportsAdmin(w http.ResponseWriter, r *http.Request) {
+	common.GetAllHandler(w, r, func(ctx context.Context, query url.Values) ([]models.AdminReport, error) {
+		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)
+		if !ok {
+			return nil, fmt.Errorf("Error: Internal server error. Something went wrong while decoding the JWT.")
+		}
+
+		filter := &models.ReportFilter{
+			CreatedAfter:   query.Get("createdAfter"),
+			CreatedBefore:  query.Get("createdBefore"),
+			UserID:         authClaims.UserID,
+			OrganizationID: authClaims.OrganizationID,
+			Role:           authClaims.Role,
+		}
+
+		return rh.ReportService.FindAllReportsOrganization(ctx, *filter)
+	})
+}
+
 func (rh *ReportHandler) GetReportDataById(w http.ResponseWriter, r *http.Request) {
 	common.GetByIdHandler(w, r, func(ctx context.Context, id int) (*models.RideRecord, error) {
 		authClaims, ok := ctx.Value(middleware.AuthKeyName).(models.AuthInfo)

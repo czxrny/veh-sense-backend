@@ -75,6 +75,7 @@ func initializeHandlers(app *internal.App) *chi.Mux {
 		protectedRouter.Patch("/admin/organization", orgHandler.UpdateMyOrganization)
 		protectedRouter.Post("/admin/users", userAuthHandler.RegisterCorporateUser)
 		protectedRouter.Get("/admin/users", userInfoHandler.GetAllUsersInfo)
+		protectedRouter.Get("/admin/reports", rapHandler.GetReportsAdmin)
 
 		protectedRouter.Delete("/users/{id}", userInfoHandler.DeleteUserById)
 

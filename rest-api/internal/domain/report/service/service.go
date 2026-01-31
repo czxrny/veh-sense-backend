@@ -22,6 +22,10 @@ func (s *ReportService) FindAllReports(ctx context.Context, filter models.Report
 	return s.raportRepo.FindAll(ctx, filter)
 }
 
+func (s *ReportService) FindAllReportsOrganization(ctx context.Context, filter models.ReportFilter) ([]models.AdminReport, error) {
+	return s.raportRepo.FindAllAdmin(ctx, filter)
+}
+
 func (s *ReportService) DeleteById(ctx context.Context, authInfo models.AuthInfo, id int) error {
 	Report, err := s.raportRepo.GetByID(ctx, id)
 	if err != nil {
