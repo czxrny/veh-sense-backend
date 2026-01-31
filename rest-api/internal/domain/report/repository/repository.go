@@ -35,7 +35,7 @@ func (r *ReportRepository) FindAll(ctx context.Context, filter models.ReportFilt
 func (r *ReportRepository) FindAllAdmin(ctx context.Context, filter models.ReportFilter) ([]models.AdminReport, error) {
 	db := r.db.WithContext(ctx)
 
-	//db = r.queryFilter(filter, db)
+	db = db.Where("reports.organization_id = ?", filter.OrganizationID)
 
 	var reports []models.AdminReport
 	err := db.Table("reports").

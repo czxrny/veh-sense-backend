@@ -35,7 +35,7 @@ func (s *ReportService) FindById(ctx context.Context, authInfo models.AuthInfo, 
 	isOrgAdmin := report.OrganizationID != nil && authInfo.OrganizationID != nil && *report.OrganizationID == *authInfo.OrganizationID && authInfo.Role == "admin"
 
 	if !isOwner && !isOrgAdmin {
-		return nil, fmt.Errorf("Error: User is unauthorized to delete the vehicle.")
+		return nil, fmt.Errorf("Error: User is unauthorized to get the report.")
 	}
 
 	return report, nil
