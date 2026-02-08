@@ -1,50 +1,83 @@
-# VehSense BACKEND
+# VehSense Backend
 
-This project aims to enable the communication between `VehSense` applications with the drivers database. 
+`VehSense Backend` enables communication between **VehSense** applications through a server.  
 
-## Overlook
+## Overview
 
-`VehSense BACKEND` goal is to gather the data sent in batches from the `VehSense Android App` (that is connected to the esp32), sum and gather all of the info, and create raports. Each user can only have one active raport that gathers the data - the way it is planned to  work is it checks if there is a raport that has and end timestamp smaller than 10 mins from now. if yes, use the data to add the info that was sent to backend and update the asset. This approach ensures that a sudden stop of the app won't erase all the data that was meant for the report. That is also a better approach since the backend restart, or multiple backend instances could potentailly mean that the data stored in ram would disappear. 
+The project aims to implement endpoints that provide:  
+- user authorization,  
+- retrieval of requested data,  
+- analysis of ride data submitted via the [VehSense Mobile App](https://github.com/czxrny/veh-sense-app),  
+- report generation based on that data.  
 
-`VehSense BACKEND` also will provide REST API for all of the crud operations on the application database.
+The project consists of two services: **REST API** and **Batch Receiver**:  
+- **REST API** – handles authorization and CRUD operations for the client.  
+- **Batch Receiver** – receives data batches, generates reports, and stores data for frontend visualization.  
 
-> It is also planned to provide a websocket communication for live drivers informations.
+The project uses: `chi`, `GORM`, `PostgreSQL`, and `Docker`.
 
-There will be couple of roles: 
-- driver - provided by special endpoint, where the user provides the active jwt and rest api returns the jwt with driver role - then he can provide the report info. 
-- user - check out your own raports.
-- admin - check out raports of all of the users in your organization.
-- app admin - to add organizations and their admins
+## User Roles
 
-### Used chi + GORM + PostgreSQL + Docker.
+The backend supports different types of users:  
+- **user** – [VehSense Mobile App](https://github.com/czxrny/veh-sense-app) user, either a *fleet driver* or *private*.  
+- **admin** – [VehSense Web App](https://github.com/czxrny/veh-sense-panel) user with access to all fleet-related data.  
+- **root** – system user who can modify most assets in the server database.  
 
-# Current stage of the development - TODO
+Endpoint documentation is available in the `/docs` folder.  
 
-- [ ] Write tests for:
-    - User:
-        - [ ] Handler
-        - [ ] Service
-        - [ ] Repository
-    - Vehicle:
-        - [ ] Handler
-        - [ ] Service
-        - [ ] Repository
-    - Organization:
-        - [ ] Handler
-        - [ ] Service
-        - [ ] Repository
-    - Raport:
-        - [ ] Handler
-        - [ ] Service
-        - [ ] Repository
-- [ ] Unify errors
-- [ ] Unify the status codes
-- [ ] Develop the Raport service with sessions etc.
+## Getting Started
 
-## And then...
+To run VehSense Backend:  
 
-- [ ] Validate tokens when the owner was deleted or changed the password
-- [ ] HTTPS
-- [ ] WebSocket for the admin panel LIVE view
-- [ ] Microservices
-- [ ] Implement changing the password by email
+1. Clone the repository:  
+```bash
+git clone https://github.com/czxrny/veh-sense-backend.git
+```
+
+2. Navigate to the main project directory:
+```
+cd ./veh-sense-backend
+```
+
+3. Configure environment variables in .env.example:
+```
+nano ./.env.example
+```
+
+4. Copy .env.example to .env:
+```
+cp ./.env.example ./.env
+```
+
+5. Run the project:
+```
+docker compose up -d --build
+```
+
+> Optionally, you can create a docker-compose.override.yml to configure a local PostgreSQL database.
+
+## TODO
+
+- [ ] Unify error handling
+
+- [ ] Standardize status codes
+
+- [ ] Update REST API Swagger documentation
+
+- [ ] Refactor User Service code
+
+- [ ] Allow admins to edit vehicle status
+
+- [ ] Implement the rest of the tests
+
+## Future Improvements
+
+- [ ] Validate tokens if the owner is deleted or changes their password
+
+- [ ] Enable HTTPS
+
+- [ ] WebSocket for live admin panel view
+
+- [ ] Microservices architecture
+
+- [ ] Implement password reset via email
