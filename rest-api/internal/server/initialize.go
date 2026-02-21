@@ -47,6 +47,7 @@ func initializeHandlers(app *internal.App) *chi.Mux {
 	})
 
 	router.Group(func(authRouter chi.Router) {
+		authRouter.Use(middleware.CORSMiddleware)
 		authRouter.Use(middleware.RequireAPIKeyMiddleware)
 
 		authRouter.Post("/auth/signup", userAuthHandler.RegisterPrivateUser)
@@ -57,6 +58,7 @@ func initializeHandlers(app *internal.App) *chi.Mux {
 
 	// Endpoints that require the JWT
 	router.Group(func(protectedRouter chi.Router) {
+		protectedRouter.Use(middleware.CORSMiddleware)
 		protectedRouter.Use(middleware.JWTClaimsMiddleware)
 
 		protectedRouter.Get("/vehicles", vehHandler.GetVehicles)
