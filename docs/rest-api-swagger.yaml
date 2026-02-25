@@ -26,15 +26,11 @@ tags:
       Endpoints for handling reports.
       Includes retrieving, listing, and deleting driving reports and performance data of vehicles.
 
-  - name: Admin / Organization
+  - name: Admin Operations
     description: >
-      Endpoints for administrators to manage their organization.
-      Allows updating organization details and accessing organization-specific information.
-
-  - name: Admin / Users
-    description: >
-      Endpoints for administrators to manage users within their organization.
-      Includes creating new users, listing all users, and deleting users.
+      Endpoints for administrators to manage the information within their organization, 
+      suh as creating drivers, fetching information about them and their reports and 
+      editing organization information.
 
   - name: Root / Admins
     description: >
@@ -176,6 +172,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    get:
+        tags:
+          - Auth / Users
+        summary: Get user info by id.
+        description: Get my user info by ID. Requires JWT Token of the requested user info / org admin.
+        security:
+              - bearerAuth: []
+        responses:
+          "200":
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/UserInfo"
+          "400":
+            description: Invalid parameters 
+          "401":
+            description: Validation error
+          "403":
+            description: Unauthorized to see user
+          "404":
+            description: User not found
+          default:
+            description: Unexpected error
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
   /me/credentials:
     patch:
       tags:
@@ -540,7 +564,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Vehicle"
+                  $ref: "#/components/schemas/Report"
         "400":
           description: Invalid parameters
         "401":
@@ -585,10 +609,114 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Reports
+      summary: Get report by the id.
+      description: Get report by id Used only by the owner of the report, or the admin of the organization. Requires the JWT token. 
+      security:
+              - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reports/{id}/data:
+    get:
+      tags:
+        - Reports
+      summary: Get report data.
+      description: Get all the report data. The data contains raw OBD frames and events - both of these are gzipped and then base64 encoded. Used only by the owner of the reports, or the admin of the organization. Requires the JWT token. 
+      security:
+              - bearerAuth: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RideRecord"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/reports:
+    get:
+      tags: 
+      - Admin Operations
+      summary: Get all reports within organization by the query parameters.
+      description: Get all the reports that match the criteria. Used only by the the admin of the organization. Requires the JWT token. 
+      security:
+              - bearerAuth: []
+      parameters:
+        - name: createdAfter
+          in: query
+          description: Filter vehicles created after this timestamp (Unix time, seconds since 1970-01-01 UTC)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1692960000
+
+        - name: createdBefore
+          in: query
+          description: Filter vehicles created before this timestamp (Unix time, seconds since 1970-01-01 UTC)
+          required: false
+          schema:
+            type: integer
+            format: int64
+            example: 1693046400
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "400":
+          description: Invalid parameters
+        "401":
+          description: Validation error
+        "403":
+          description: Unauthorized to view the asset
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /admin/users:
     post:
       tags:
-        - Admin / Users
+        - Admin Operations
       summary: Add a new organization users.
       description: Adds new organization users. Requires a JWT Token of an organization admin. The user organization_id then set based on the JWT Token.
       security:
@@ -618,7 +746,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     get:
       tags:
-        - Admin / Users
+        - Admin Operations
       summary: Get all organization users.
       description: Get all organization users. Requires a JWT Token of an admin of the organization. 
       security:
@@ -647,7 +775,7 @@ paths:
   /admin/organization:
     patch:
       tags:
-        - Admin / Organization
+        - Admin Operations
       summary: Update my organization.
       description: Update an existing organization based on JWT. Requires an admin JWT Token.
       security:
@@ -854,10 +982,6 @@ components:
           format: int64
           description: The number of rides registered by the VehSense API.
           example: 40
-        rating: 
-          type: string
-          description: Driver rating based on the rides.
-          example: Gentle
     UserRegisterInfo:
       type: object
       description: Information required to register a user.
@@ -1167,7 +1291,7 @@ components:
           type: integer
           format: int64
           example: 42
-        frame_time:
+        start_time:
           type: string
           format: date-time
           example: "2025-08-25T10:00:00Z"
@@ -1175,22 +1299,6 @@ components:
           type: string
           format: date-time
           example: "2025-08-25T10:45:00Z"
-        avg_fuel:
-          type: number
-          format: float
-          example: 6.5
-        max_fuel:
-          type: number
-          format: float
-          example: 8.2
-        consumed_fuel:
-          type: number
-          format: float
-          example: 3.4
-        kilometers_travelled:
-          type: number
-          format: float
-          example: 25.7
         acceleration_style:
           type: string
           example: "aggressive"
@@ -1201,42 +1309,30 @@ components:
           type: number
           format: float
           example: 54.3
-
-    BatchData:
+        max_speed:
+          type: number
+          format: float
+          example: 78.2
+        kilometers_travelled:
+          type: number
+          format: float
+          example: 25.7
+    RideRecord:
       type: object
       properties:
-        user_id:
+        report_id:
           type: integer
-          format: int64
-          example: 10
-        vehicle_id:
-          type: integer
-          format: int64
-          example: 10
-        timestamp:
+          example: 123131
+        data:
           type: string
-          example: start
-        momentary_fuel_consump:
-          type: number
-          format: float
-          minimum: 0
-          example: 3.5
-        kilometers_travelled:
-          type: integer
-          format: int64
-          example: 45
-        speed:
-          type: number
-          format: float
-          minimum: 0
-          description: Speed in kilometers.
-          example: 65.5
-        rpms:
-          type: number
-          format: int64
-          minimum: 0
-          description: Speed in kilometers.
-          example: 1900
+          example: "gwesbguweghesgpoAFD0IQfrjq3FJ90-qf9pGBNp9gnpuwoigspgffafafaghjsahj"
+        event_data:
+          type: string
+          example: "afgqagubagiuabgiuabgiuawbgiuawgbiawgbaqwgag-gwesbguweghesgpoAFD0IQfrjq3FJ90"
+      required:
+        - report_id
+        - data
+        - event_data
     UserTokenResponse:
       type: object
       properties:
@@ -1262,4 +1358,26 @@ components:
       required:
         - code
         - message
+    data:
+      type: array
+      description: Ride data returned by /reports/id/data.
+      properties:
+        timestamp:
+          type: string
+        rpm:
+          type: integer
+        engine_load:
+          type: number
+        vehicle_speed:
+          type: number
+    ride_event:
+      type: array
+      description: Ride data returned by /reports/id/data.
+      properties:
+        timestamp:
+          type: string
+        type:
+          type: string
+        value:
+          type: number
  
